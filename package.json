@@ -18,5 +18,9 @@
   "bugs": {
     "url": "https://github.com/editrobot/editrobotcell/issues"
   },
-  "homepage": "https://github.com/editrobot/editrobotcell#readme"
+  "homepage": "https://github.com/editrobot/editrobotcell#readme",
+  "dependencies": {
+    "express": "^4.16.2",
+    "ws": "^4.0.0"
+  }
 }
