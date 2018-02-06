@@ -21,6 +21,7 @@
   "homepage": "https://github.com/editrobot/editrobotcell#readme",
   "dependencies": {
     "express": "^4.16.2",
+    "rio": "^2.4.1",
     "ws": "^4.0.0"
   }
 }
