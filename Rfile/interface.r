@@ -1,9 +1,3 @@
-
-myString <- "Rscript is running......"
-
-
 getResult <- function (jsonObj) {
-	return(paste(jsonObj,"return now..."))
+	return(jsonObj)
 }
-
-print (myString)
