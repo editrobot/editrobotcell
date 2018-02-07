@@ -1,4 +1,7 @@
-# editrobotcell
-this is editrobotcell
+# server
 
-    git clone https://github.com/editrobot/editrobotcell.git
+how to run server.
+
+on **windows** platform , open `run.bat`
+
+on **Linux** or **MacOS** platform , open `run.sh`
