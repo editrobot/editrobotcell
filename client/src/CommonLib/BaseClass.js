@@ -1,6 +1,6 @@
 class BaseClass {
 	constructor() {
-		
+		console.log("BaseClass")
 	}
 }
 
