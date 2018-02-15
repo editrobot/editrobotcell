@@ -5,23 +5,26 @@ const app = express()
 
 const WebSocket = require('ws');
 
-// 引用Server类:
 const WebSocketServer = WebSocket.Server;
 
 var wsclients = []
 
 var vis = require('./Router/vis');
-var serverport = 3001;
+var serverport = process.argv.slice(2)[0];
 
+class base {
+	constructor() {
+		console.log("BaseClass")
+	}
+}
+let cc= new base();
 
 app.use('/', express.static('../client/build'));
-
 app.use('/vis',vis);
 
 let server = app.listen(
 	serverport, () => console.log('Example app listening on port '+serverport+'!')
 )
-
 
 // 创建WebSocketServer:
 let wss = new WebSocketServer({
@@ -31,7 +34,7 @@ let wss = new WebSocketServer({
 wss.on('connection', function (ws, req) {
 	console.log("[SERVER] connection()");
 	const location = url.parse(req.url, true);
-	console.log(location);
+	// console.log(location);
 
 	ws.on('message', function (message) {
 		console.log('[SERVER] Received:',message);
@@ -57,7 +60,13 @@ wss.broadcast = function (data) {
 	});
 };
 
+process.on('message', (m) => {
+	console.log(serverport,'收到服务器消息：', m);
+});
+
+process.send({ message:"hi" });
+
 
 setInterval(function timeout() {
-	wss.broadcast("broadcast from server");
+	wss.broadcast("broadcast from server"+serverport);
 }, 10000);

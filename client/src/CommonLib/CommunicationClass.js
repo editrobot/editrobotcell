@@ -3,8 +3,12 @@ import BaseClass from './BaseClass.js';
 class CommunicationClass extends BaseClass{
 	constructor() {
 		super();
+		this.initWSclient(this.GetQueryString("wsp"));
+	}
+	
+	initWSclient(port){
 		var that = this;
-		this.ws = new WebSocket('ws://localhost:3001') //'ws://localhost:3000'
+		this.ws = new WebSocket('ws://localhost:'+port)
 		this.ws.onopen = function () {
 			that.ws.send('ready');
 		};
@@ -16,12 +20,9 @@ class CommunicationClass extends BaseClass{
 		// 关闭的事件:
 		this.ws.onclose = function (message) {
 			// alert("close")
-			// console.log("close")
+			console.log("close")
+			that.initWSclient()
 		}
-	}
-	
-	getClientList(){
-		
 	}
 }
 

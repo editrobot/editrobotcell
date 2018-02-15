@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
+
+
 import CommunicationClass from './CommonLib/CommunicationClass.js';
 
 class App extends React.Component {
