@@ -13,39 +13,52 @@ function getProcessInfo(){
 	const arch = process.arch;//运行nodejs的操作系统架构
 	const uptime = process.uptime();//nodejs进程运行时间
 	return {
-		memUsage,
-		cpuUsage,
-		cfg,
-		env,
-		pwd,
-		execPath,
-		pf,
-		release,
-		pid,
-		arch,
-		uptime
+		memUsage,cpuUsage,cfg,env,pwd,execPath,pf,release,pid,arch,uptime
 	}
 }
 
 var processList = [
-	{port:3001,workerHandle:null},
-	{port:3002,workerHandle:null},
-	{port:3003,workerHandle:null},
-	{port:3004,workerHandle:null}
+	{port:3001,file:"server/index.js",workerHandle:null,model:"cellmaster",clients:0},
+	{port:3002,file:"server/index.js",workerHandle:null,model:"cellmaster",clients:0},
+	{port:3003,file:"server/index.js",workerHandle:null,model:"cellmaster",clients:0},
+	{port:3004,file:"server/index.js",workerHandle:null,model:"cellmaster",clients:0},
+	{port:3005,file:"server/index.js",workerHandle:null,model:"cellmaster",clients:0},
+	{port:3006,file:"server/index.js",workerHandle:null,model:"cellmaster",clients:0},
+	{port:3007,file:"server/index.js",workerHandle:null,model:"cellmaster",clients:0},
+	{port:3008,file:"server/index.js",workerHandle:null,model:"cellmaster",clients:0},
+	{port:8887,file:"proxy/proxy.js",workerHandle:null,model:"pipe"}
 ];
 
-function spawn(mainModule,point) {
-	processList[point].workerHandle = child_process.fork(mainModule,[processList[point].port])
-	processList[point].workerHandle.send({ pid: processList[point].workerHandle.pid });
+function spawn(point) {
+	processList[point].workerHandle = child_process.fork(
+		processList[point].file,
+		[processList[point].port]
+	)
+
 	processList[point].workerHandle.on('exit', function (code) {
 		if (code !== 0) {
-			spawn(mainModule,point);
+			spawn(point);
 		}
 	});
 	processList[point].workerHandle.on('message', (data) => {
-		console.log('收到子进程消息：',data);
+		console.log('child：',data);
 	});
 }
-for (point in processList){
-	spawn('server/index.js',point);
+function BroadcastToChild(){
+	processList.map((i)=>{
+		switch(i.model){
+			case "cellmaster":
+				i.workerHandle.send({
+					pid: i.workerHandle.pid,
+					port: i.port
+				});
+				break;
+			default:
+		}
+	})
 }
+
+for (point in processList){
+	spawn(point);
+}
+BroadcastToChild();

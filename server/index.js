@@ -1,3 +1,4 @@
+
 var path = require("path");
 const url = require('url');
 const express = require('express')
@@ -7,66 +8,83 @@ const WebSocket = require('ws');
 
 const WebSocketServer = WebSocket.Server;
 
-var wsclients = []
-
-var vis = require('./Router/vis');
-var serverport = process.argv.slice(2)[0];
-
 class base {
 	constructor() {
 		console.log("BaseClass")
 	}
 }
-let cc= new base();
 
-app.use('/', express.static('../client/build'));
-app.use('/vis',vis);
+class ss extends base {
+	constructor() {
+		super();
 
-let server = app.listen(
-	serverport, () => console.log('Example app listening on port '+serverport+'!')
-)
+		this.DefineEnvironment();
 
-// 创建WebSocketServer:
-let wss = new WebSocketServer({
-	server: server
-});
+		this.server = app.listen(
+			this.serverport, () => console.log('child on: '+this.serverport+'!')
+		)
 
-wss.on('connection', function (ws, req) {
-	console.log("[SERVER] connection()");
-	const location = url.parse(req.url, true);
-	// console.log(location);
+		this.creatWebSocket();
 
-	ws.on('message', function (message) {
-		console.log('[SERVER] Received:',message);
-		ws.send('ok', (err) => {
-			if (err) {
-				console.log('[SERVER] error:',err);
-			}
+		process.on('message', (m) => {
+			console.log(this.serverport,'master：', m);
 		});
-	})
-	ws.on('close', function (message) {
-		console.log('close');
-	})
-	ws.on('error', function (message) {
-		console.log('erro');
-	})
-});
 
-wss.broadcast = function (data) {
-	wss.clients.forEach(function (client) {
-		if (client.readyState === WebSocket.OPEN) {
-			client.send(data);
-		}
-	});
-};
+		process.send({ message:"hi" });
 
-process.on('message', (m) => {
-	console.log(serverport,'收到服务器消息：', m);
-});
+	}
+	
+	DefineEnvironment (){
+		this.wsclients = []
+		this.i = require('./Router/i');
+		this.vis = require('./Router/vis');
+		this.serverport = process.argv.slice(2)[0];
 
-process.send({ message:"hi" });
+		app.use('/', express.static('./client/build'));
+		app.use('/auto',this.i);
+		app.use('/vis',this.vis);
+	}
+	
+	creatWebSocket (){
+		var that = this;
 
+		this.wss = new WebSocketServer({
+			server: this.server
+		});
 
-setInterval(function timeout() {
-	wss.broadcast("broadcast from server"+serverport);
-}, 10000);
+		this.wss.on('connection', function (ws, req) {
+			console.log("[SERVER] connection()");
+			const location = url.parse(req.url, true);
+			// console.log(location);
+
+			ws.on('message', function (message) {
+				console.log('[SERVER] Received:',message);
+				ws.send('ok', (err) => {
+					if (err) {
+						console.log('[SERVER] error:',err);
+					}
+				});
+			})
+			ws.on('close', function (message) {
+				console.log('close');
+			})
+			ws.on('error', function (message) {
+				console.log('erro');
+			})
+		});
+		this.wss.broadcast = function (data) {
+			that.wss.clients.forEach(function (client) {
+				if (client.readyState === WebSocket.OPEN) {
+					client.send(data);
+				}
+			});
+		};
+	}
+}
+
+let cc= new ss();
+
+// setInterval(function timeout() {
+	// console.log("broadcast......")
+	// cc.wss.broadcast("broadcast from server"+cc.serverport);
+// }, 10000);

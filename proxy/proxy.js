@@ -2,6 +2,7 @@ var http = require('http');
 var net = require('net');
 var url = require('url');
 
+var serverport = process.argv.slice(2)[0] || 8887;
 function request(cReq, cRes) {
 	var u = url.parse(cReq.url);
 	console.log(u)
@@ -40,4 +41,5 @@ function connect(cReq, cSock) {
 http.createServer()
 	.on('request', request)
 	.on('connect', connect)
-	.listen(8887, '0.0.0.0');
+	.listen(serverport, '0.0.0.0');
+console.log("proxy run on:",serverport)

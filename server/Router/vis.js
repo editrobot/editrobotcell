@@ -6,7 +6,7 @@ var rio = require("rio");
 
 router.all('/', (req, res) => {
 	rio.e({
-		filename: path.join("..\\Rfile\\interface.r"),
+		filename: path.join(".\\Rfile\\interface.r"),
 		entrypoint: "getResult",
 		data: {a:"abc"},
 		callback: (err, result) => {

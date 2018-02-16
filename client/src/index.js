@@ -2,14 +2,15 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
-
-
 import CommunicationClass from './CommonLib/CommunicationClass.js';
+import StorageClass from './CommonLib/StorageClass.js';
+
+var Cc = new CommunicationClass();
+var db = new StorageClass();
 
 class App extends React.Component {
 	constructor(props) {
 		super(props);
-		var Cc = new CommunicationClass()
 	}
 
 	componentDidMount() {
