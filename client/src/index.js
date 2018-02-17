@@ -6,7 +6,13 @@ import CommunicationClass from './CommonLib/CommunicationClass.js';
 import StorageClass from './CommonLib/StorageClass.js';
 
 var Cc = new CommunicationClass();
-var db = new StorageClass();
+var db = new StorageClass("ClientDB");
+// db.addData({abc:123});
+// db.readData(2);
+// db.resetData(2,"更新");
+// db.deleteData(2);
+// db.mapData();
+db.removeDB();
 
 class App extends React.Component {
 	constructor(props) {

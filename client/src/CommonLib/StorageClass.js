@@ -1,85 +1,145 @@
 import BaseClass from './BaseClass.js';
 
 class StorageClass extends BaseClass{
-	constructor() {
+	constructor(dbname) {
 		super();
+		this.dbname = dbname;
 		if('indexedDB' in window) {
-			console.log("yes")
-			this.run()
+			console.log("support indexedDB")
 		} else {
-			console.log("no")
+			console.log("do not support indexedDB")
 		}
 	}
-	
-	run(){
-		var openRequest = window.indexedDB.open("test",1);
-		var db;
 
-		openRequest.onupgradeneeded = function(e) {
-			// upgradeneeded：第一次打开该数据库，或者数据库版本发生变化。
-			console.log("Upgrading...");
-			db = e.target.result;
-			if(!db.objectStoreNames.contains("ClientDB")) {
-				console.log("ClientDB");
-				db.createObjectStore("ClientDB",{ autoIncrement: true });
+	openDB(mode,success,error,oncomplete){
+		var that = this;
+		this.openRequest = window.indexedDB.open(this.dbname,1);
+		this.openRequest.onupgradeneeded = function(e) {
+			var db = e.target.result;
+			if(!db.objectStoreNames.contains(that.dbname)) {
+				db.createObjectStore(that.dbname,{ autoIncrement: true });
 			}
 		}
-
-		openRequest.onsuccess = function(e) {
-			// success：打开成功。
-			console.log("Success!");
-			db = e.target.result;
-			var t = db.transaction(["ClientDB"],"readwrite");
-			t.oncomplete = function(e) {
+		this.openRequest.onsuccess = function(e) {
+			var db = e.target.result;
+			var transaction = db.transaction([that.dbname],mode);
+			transaction.oncomplete = function(e) {
 				console.log("oncomplete");
+				if(typeof oncomplete === "function"){
+					if(oncomplete()){
+						db.close();
+					}
+				}
 			};
-			t.onabort = function(e) {
+			transaction.onabort = function(e) {
 				console.log("abort");
 			};
-			t.onerror = function(e) {
+			transaction.onerror = function(e) {
 				console.log("error");
 			};
-
-			var store = t.objectStore("ClientDB");
-			var o = {p: 123};
-			var request = store.add(o);
-			
-			request.onerror = function(e) {
-				console.log("Error",e.target.error.name);
-				// error handler
+			if(typeof success === "function"){
+				var store = transaction.objectStore(that.dbname);
+				success(store)
 			}
+		}
 
-			request.onsuccess = function(e) {
-				console.log("数据添加成功！");
+		this.openRequest.onerror = function(e) {
+			if(typeof error === "function"){
+				error(e);
 			}
-			db.transaction(["ClientDB"], "readonly")
-			.objectStore("ClientDB")
-			.get(1)
-			.onsuccess = function(e){
-				console.log(e.target.result);
-			}
+		}
+	}
 
-			var request = store.put({ p:456 });
-			
-			// var request = db.transaction(["ClientDB"], "readwrite").objectStore("ClientDB").delete(3);
+	addData (data){
+		this.openDB(
+			"readwrite",
+			(store)=>{
+				var request = store.add(data);
 
-			var store = db.transaction(["ClientDB"], "readonly").objectStore("ClientDB");
-			var cursor = store.openCursor();
-			cursor.onsuccess = function(e) {
-				var res = e.target.result;
-				if(res) {
-					console.log("Key", res.key);
-					console.log(res.value);
-					res.continue();
+				request.onerror = function(e) {
+					console.log("Error",e.target.error.name);
 				}
-			}
-		}
 
-		openRequest.onerror = function(e) {
-			// error：打开失败。
-			console.log("Error");
-			console.dir(e);
-		}
+				request.onsuccess = function(e) {
+					console.log("add db success！");
+				}
+			},
+			(e)=>{
+				console.log("Error");
+				console.dir(e);
+			},
+			()=>{return true;}
+		);
+	}
+	
+	readData(key){
+		this.openDB(
+			"readonly",
+			(store)=>{
+				store.get(key).onsuccess = function(e){
+					console.log(e.target.result);
+				}
+			},
+			(e)=>{
+				console.log("Error");
+				console.dir(e);
+			},
+			()=>{return true;}
+		);
+	}
+	
+	resetData(key,data){
+		this.openDB(
+			"readwrite",
+			(store)=>{
+				store.put(data, key);
+			},
+			(e)=>{
+				console.log("Error");
+				console.dir(e);
+			},
+			()=>{return true;}
+		);
+	}
+	
+	deleteData(key){
+		this.openDB(
+			"readwrite",
+			(store)=>{
+				store.delete(key);
+			},
+			(e)=>{
+				console.log("Error");
+				console.dir(e);
+			},
+			()=>{return true;}
+		);
+	}
+	
+	mapData(){
+		this.openDB(
+			"readonly",
+			(store)=>{
+				var cursor = store.openCursor();
+				cursor.onsuccess = function(e) {
+					var res = e.target.result;
+					if(res){
+						// console.log(res);
+						console.log("Key",res.key,res.value);
+						res.continue();
+					}
+				}
+			},
+			(e)=>{
+				console.log("Error");
+				console.dir(e);
+			},
+			()=>{return true;}
+		);
+	}
+	
+	removeDB(){
+		window.indexedDB.deleteDatabase(this.dbname);
 	}
 }
 
