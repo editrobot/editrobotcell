@@ -20,13 +20,7 @@ function getProcessInfo(){
 var processList = [
 	{port:3001,file:"server/index.js",workerHandle:null,model:"cellmaster",clients:0},
 	{port:3002,file:"server/index.js",workerHandle:null,model:"cellmaster",clients:0},
-	{port:3003,file:"server/index.js",workerHandle:null,model:"cellmaster",clients:0},
-	{port:3004,file:"server/index.js",workerHandle:null,model:"cellmaster",clients:0},
-	{port:3005,file:"server/index.js",workerHandle:null,model:"cellmaster",clients:0},
-	{port:3006,file:"server/index.js",workerHandle:null,model:"cellmaster",clients:0},
-	{port:3007,file:"server/index.js",workerHandle:null,model:"cellmaster",clients:0},
-	{port:3008,file:"server/index.js",workerHandle:null,model:"cellmaster",clients:0},
-	{port:8887,file:"proxy/proxy.js",workerHandle:null,model:"pipe"}
+	{port:8888,file:"proxy/proxy.js",workerHandle:null,model:"pipe"}
 ];
 
 function spawn(point) {
@@ -41,7 +35,7 @@ function spawn(point) {
 		}
 	});
 	processList[point].workerHandle.on('message', (data) => {
-		console.log('child：',data);
+		console.log('child ',processList[point].workerHandle.pid,' say：',data);
 	});
 }
 function BroadcastToChild(){
