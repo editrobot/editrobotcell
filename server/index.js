@@ -33,7 +33,7 @@ class ss extends base {
 		process.send({ message:"hi" });
 
 	}
-	
+
 	DefineEnvironment (){
 		this.i = require('./Router/i');
 		this.vis = require('./Router/vis');

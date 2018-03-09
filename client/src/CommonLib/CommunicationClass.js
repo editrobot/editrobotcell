@@ -5,7 +5,6 @@ class CommunicationClass extends BaseClass{
 		super();
 		this.CommunicationMode = "websocket"
 		this.port = this.GetQueryString("wsp");
-		// this.Parser("2^(5+1)^1");
 	}
 
 	initclient(){

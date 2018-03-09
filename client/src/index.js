@@ -2,11 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
+import plusClass from './CommonLib/plusClass.js';
+import ParserClass from './CommonLib/ParserClass.js';
 import CommunicationClass from './CommonLib/CommunicationClass.js';
 // import StorageClass from './CommonLib/StorageClass.js';
-// import WebRTCClass from './CommonLib/WebRTCClass.js';
 
-// var WebRTC = new WebRTCClass();
 var Cc = new CommunicationClass();
 // var db = new StorageClass("ClientDB");
 // db.addData({abc:123});
@@ -17,43 +17,30 @@ var Cc = new CommunicationClass();
 // db.removeDB();
 
 
+var plus = new plusClass("123","44");
+setTimeout(()=>{console.log(plus.add());},0);
+
 class App extends React.Component {
 	constructor(props) {
 		super(props);
+		this.assembly = new ParserClass();
 		Cc.initclient();
-		var aaa = (count)=>{
-			return new Promise(function(resolve, reject) {
-				console.log("init!"+count);
-
-				if (true){
-				resolve(count);
-				}
-				else {
-				reject(Error("print reject"));
-				}
-			});
-		}
-		aaa(0).then((v)=>{
-			console.log(v)
-			v++;
-			return aaa(v);
-		},(v)=>{
-			console.log(v)
-		}).then((v)=>{
-			console.log(v)
-			v++;
-			return aaa(v);
-		},(v)=>{
-			console.log(v)
-		}).then((v)=>{
-			console.log(v)
-		},(v)=>{
-			console.log(v)
-		});
+		
 	}
 
 	componentDidMount() {
 		// console.log("componentDidMount")
+		var that = this;
+		var inputtextarea = document.querySelector('textarea#inputtextarea');
+		var outputtextarea = document.querySelector('textarea#outputtextarea');
+		var processButton = document.querySelector('button#processButton');
+		
+		processButton.onclick = function () {
+			that.assembly.GetResult(inputtextarea.value,(v)=>{
+				outputtextarea.value = v;
+			});
+			
+		};
 	}
 
 	componentWillUnmount() {
@@ -63,14 +50,13 @@ class App extends React.Component {
 	render () {
 		return (
 			<div>
-				<textarea id="dataChannelSend" disabled ></textarea>
-				<textarea id="dataChannelReceive" disabled></textarea>
-
-				<div id="buttons">
-				<button id="startButton">Start</button>
-				<button id="sendButton">Send</button>
-				<button id="closeButton">Stop</button>
-				</div>
+				<p>
+					<textarea id="inputtextarea" ></textarea>
+					<textarea id="outputtextarea" ></textarea>
+				</p>
+				<p>
+					<button id="processButton">process</button>
+				</p>
 			</div>
 		)
 	}
