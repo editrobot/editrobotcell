@@ -14,23 +14,22 @@ class base {
 	}
 }
 
+// process.send({ message:"hi" });
+
 class ss extends base {
 	constructor() {
 		super();
+		this.ClientsTotals = 0;
 		this.CLIENTS = [];
 		this.DefineEnvironment();
 
 		this.server = app.listen(
-			this.serverport, () => console.log('child on: '+this.serverport+'!')
+			this.serverport, () => {
+				// console.log('child on: '+this.serverport+'!')
+			}
 		)
 
 		this.creatWebSocket();
-
-		process.on('message', (m) => {
-			console.log('master speak to ', m.pid,":","your port is ",m.port);
-		});
-
-		process.send({ message:"hi" });
 
 	}
 
@@ -43,9 +42,41 @@ class ss extends base {
 		app.use('/auto',this.i);
 		app.use('/vis',this.vis);
 	}
-	GetClientsId(ws){
+	addNewclients(ws){
 		var that = this;
-		// console.log(this.wss.clients);
+		var i;
+		var lock = true;
+		for(i in that.CLIENTS){
+			if(!that.CLIENTS[i].active){
+				that.CLIENTS[i].active = true;
+				that.CLIENTS[i].handle = ws;
+				lock = false;
+				break;
+			}
+		}
+		if(lock){
+			that.CLIENTS.push({"active":true,"handle":ws})
+			i = that.CLIENTS.length-1;
+		}
+		++this.ClientsTotals;
+		ws.send(
+			JSON.stringify({
+				"head":"clientID",
+				"body":""+(i)
+			}),
+			(err) => {
+				if (err) {
+					console.log('[SERVER] error:',err);
+				}
+		});
+		process.send({
+			"head":"BroadcastAddID",
+			"body": i
+		});
+		process.send({
+			"head":"ClientsTotals",
+			"body": this.ClientsTotals
+		});
 	}
 	creatWebSocket (){
 		var that = this;
@@ -55,45 +86,64 @@ class ss extends base {
 		});
 
 		this.wss.on('connection', function (ws, req) {
-			console.log("[SERVER] connection()");
 			// const location = url.parse(req.url, true);
-			that.GetClientsId(ws);
-			ws.send(
-				JSON.stringify({
-					"head":"clientID",
-					"body":"1"
-				}),
-				(err) => {
-					if (err) {
-						console.log('[SERVER] error:',err);
-					}
-			});
+			that.addNewclients(ws);
 
 			ws.on('message', function (message) {
-				console.log('[SERVER] Received:',message);
 				that.messageProcess(JSON.parse(message));
 			})
 			ws.on('close', function (message) {
-				console.log('close');
+				for(i in that.CLIENTS){
+					if(that.CLIENTS[i].handle === ws){
+						console.log('clientID ',i,' is close');
+						that.CLIENTS[i].active = false;
+						that.CLIENTS[i].handle = null;
+						process.send({
+							"head":"BroadcastCloseID",
+							"body": i
+						});
+						process.send({
+							"head":"ClientsTotals",
+							"body": --that.ClientsTotals
+						});
+						break;
+					}
+				}
 			})
 			ws.on('error', function (message) {
 				console.log('erro');
+				// console.log(message);
 			})
 		});
 		this.wss.broadcast = function (data) {
-			console.log(typeof that.wss.clients)
 			that.wss.clients.forEach(function (client) {
 				if (client.readyState === WebSocket.OPEN) {
 					client.send(data);
 				}
 			});
 		};
+		process.on('message', (m) => {
+			switch(m.head){
+				case "BroadcastAddID":
+					that.wss.broadcast(JSON.stringify({
+						"head":"broadcast",
+						"body":"client ID "+m.body+" join"
+					}));
+				break;
+				case "BroadcastCloseID":
+					that.wss.broadcast(JSON.stringify({
+						"head":"broadcast",
+						"body":"client ID "+m.body+" close"
+					}));
+				break;
+				default:
+			}
+		});
 	}
 	messageProcess(msg){
 		var that = this;
 		switch(msg.head){
 			default:
-				console.log(msg)
 				// ws.send(
 					// message,
 					// (err) => {

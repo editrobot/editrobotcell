@@ -1,7 +1,6 @@
 class BaseClass {
 	constructor() {
 		this.version = "v0.01"
-		
 		this.assembly = (code,cb)=>{
 			return new Promise(function(resolve, reject) {
 				if(typeof cb === "function"){

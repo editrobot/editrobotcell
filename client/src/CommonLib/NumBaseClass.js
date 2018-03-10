@@ -4,7 +4,7 @@ class NumBaseClass extends BaseClass{
 	constructor(Str) {
 		super();
 		this.nums = "+";
-		this.Progressive = 9;
+		this.Progressive = 9999;
 		this.numi = [0];
 		this.numf = [0];
 		this.status = false
@@ -172,23 +172,23 @@ class NumBaseClass extends BaseClass{
 		var lock = true;
 		var i;
 		var tempnuminumf = []
-		for(i in numi){
-			if(!lock){
-				tempnuminumf.push(numi[i])
-			}else if(numi[i] !== 0){
-				lock = !lock;
-				tempnuminumf.push(numi[i])
-			}
-		}
-		numi = (tempnuminumf.length !== 0)?(tempnuminumf):([0]);
-		lock = true;
-		while(numf.length !== 0){
-			temp = numf.pop();
-			if(temp !== 0){
-				numf.push(temp);
-				break;
-			}
-		}
+		// for(i in numi){
+			// if(!lock){
+				// tempnuminumf.push(numi[i])
+			// }else if(numi[i] !== 0){
+				// lock = !lock;
+				// tempnuminumf.push(numi[i])
+			// }
+		// }
+		// numi = (tempnuminumf.length !== 0)?(tempnuminumf):([0]);
+		// lock = true;
+		// while(numf.length !== 0){
+			// temp = numf.pop();
+			// if(temp !== 0){
+				// numf.push(temp);
+				// break;
+			// }
+		// }
 		
 		tempnuminumf = numi.concat((numf.length !== 0)?(numf):([0]));
 		
@@ -203,37 +203,49 @@ class NumBaseClass extends BaseClass{
 		}
 
 		var carry = 0;
-		i = tempnuminumf.length - 1;
-		while(!(i < 0)){
-			switch(NumSymbol){
-				case 1:
-					tempnuminumf[i] = tempnuminumf[i]+carry;
-					carry = 0;
-					if(tempnuminumf[i]<0){
-						carry = -1;
-						tempnuminumf[i] = tempnuminumf[i]+(this.Progressive+1);
-					}else if(tempnuminumf[i] > this.Progressive){
-						carry = 1;
-						tempnuminumf[i] = tempnuminumf[i]-(this.Progressive+1);
-					}
-				break;
-				case -1:
-					tempnuminumf[i] = tempnuminumf[i]+carry;
-					carry = 0;
-					if(tempnuminumf[i]>0){
-						carry = 1;
-						tempnuminumf[i] = tempnuminumf[i]-(this.Progressive+1);
-					}else if(tempnuminumf[i] < -1*this.Progressive){
-						carry = -1;
-						tempnuminumf[i] = tempnuminumf[i]+(this.Progressive+1);
-					}
-					if(tempnuminumf[i]<0){
-						tempnuminumf[i] = tempnuminumf[i]*-1;
-					}
-				break;
-				default:
+		lock = true;
+		while(lock){
+			lock = false;
+			carry = 0;
+			i = tempnuminumf.length - 1;
+			while(!(i < 0)){
+				switch(NumSymbol){
+					case 1:
+						tempnuminumf[i] = tempnuminumf[i]+carry;
+						carry = 0;
+						if(tempnuminumf[i]<0){
+							carry = -1;
+							tempnuminumf[i] = tempnuminumf[i]+(this.Progressive+1);
+							lock = lock || true;
+						}else if(tempnuminumf[i] > this.Progressive){
+							carry = 1;
+							tempnuminumf[i] = tempnuminumf[i]-(this.Progressive+1);
+							lock = lock || true;
+						}
+					break;
+					case -1:
+						tempnuminumf[i] = tempnuminumf[i]+carry;
+						carry = 0;
+						if(tempnuminumf[i]>0){
+							carry = 1;
+							tempnuminumf[i] = tempnuminumf[i]-(this.Progressive+1);
+							lock = lock || true;
+						}else if(tempnuminumf[i] < -1*this.Progressive){
+							carry = -1;
+							tempnuminumf[i] = tempnuminumf[i]+(this.Progressive+1);
+							lock = lock || true;
+						}
+						if(tempnuminumf[i]<0){
+							tempnuminumf[i] = tempnuminumf[i]*-1;
+						}
+					break;
+					default:
+				}
+				i--;
 			}
-			i--;
+			if(carry !== 0){
+				tempnuminumf[i+1] = tempnuminumf[i+1]+carry;
+			}
 		}
 		
 		this.nums = (NumSymbol>0)?("+"):("-");

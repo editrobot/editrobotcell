@@ -1,6 +1,9 @@
 import BaseClass from './BaseClass.js';
 import NumBaseClass from './NumBaseClass.js';
 
+// var plus = new plusClass("12556","5214");
+// setTimeout(()=>{console.log(plus.add());},0);
+
 class plusClass extends BaseClass{
 	constructor(Num1,Num2) {
 		super();

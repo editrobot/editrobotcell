@@ -21,10 +21,10 @@ class CommunicationClass extends BaseClass{
 		var that = this;
 		this.ws.onopen = function () {
 			that.trace("onopen");
-			that.ws.send(JSON.stringify({
-				"head":"myWebRTC",
-				"body":"ok"
-			}));
+			// that.ws.send(JSON.stringify({
+				// "head":"myWebRTC",
+				// "body":"ok"
+			// }));
 		};
 	}
 	
@@ -48,13 +48,13 @@ class CommunicationClass extends BaseClass{
 		var that = this;
 		switch(msg.head){
 			case "clientID":
-				that.trace('[SERVER] reply:clientID '+msg.body);
+				that.trace('[SERVER] My clientID:'+msg.body);
 			break;
 			case "broadcast":
-				that.trace('[SERVER] broadcast:'+msg.body);
+				that.trace('[SERVER] broadcast from server:'+msg.body);
 			break;
 			default:
-				// console.log(msg)
+				that.trace('[SERVER] receive unknow message:'+msg.body);
 		}
 	}
 }

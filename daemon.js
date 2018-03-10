@@ -1,3 +1,4 @@
+var os = require('os');
 var child_process = require('child_process');
 
 function getProcessInfo(){
@@ -17,11 +18,21 @@ function getProcessInfo(){
 	}
 }
 
+var portcount = 3001;
 var processList = [
-	{port:3001,file:"server/index.js",workerHandle:null,model:"cellmaster",clients:0},
-	{port:3002,file:"server/index.js",workerHandle:null,model:"cellmaster",clients:0},
 	{port:8888,file:"proxy/proxy.js",workerHandle:null,model:"pipe"}
 ];
+while(os.cpus().length !== processList.length){
+	processList.push({
+		port:portcount,
+		file:"server/index.js",
+		workerHandle:null,
+		model:"cellmaster",
+		clients:0
+	});
+	portcount++;
+}
+console.log("this machine has ",os.cpus().length," processor")
 
 function spawn(point) {
 	processList[point].workerHandle = child_process.fork(
@@ -34,19 +45,18 @@ function spawn(point) {
 			spawn(point);
 		}
 	});
-	processList[point].workerHandle.on('message', (data) => {
-		console.log('child ',processList[point].workerHandle.pid,' say：',data);
-	});
 }
-function BroadcastToChild(){
+function BroadcastToChild(data){
 	processList.map((i)=>{
 		switch(i.model){
 			case "cellmaster":
 				i.workerHandle.send({
 					pid: i.workerHandle.pid,
-					port: i.port
+					port: i.port,
+					head: data.head,
+					body: data.body
 				});
-				break;
+			break;
 			default:
 		}
 	})
@@ -54,5 +64,26 @@ function BroadcastToChild(){
 
 for (point in processList){
 	spawn(point);
+	processList[point].workerHandle.on('message', (data) => {
+		// console.log('child ',processList[point].workerHandle.pid,' say：',data);
+		switch(data.head){
+			case "BroadcastAddID":
+				BroadcastToChild({
+					"head": "BroadcastAddID",
+					"body": data.body
+				});
+			break;
+			case "BroadcastCloseID":
+				BroadcastToChild({
+					"head": "BroadcastCloseID",
+					"body": data.body
+				});
+			break;
+			case "ClientsTotals":
+				processList[point].clients = data.body;
+				console.log("ClientsTotals ",processList[point].clients)
+			break;
+			default:
+		}
+	});
 }
-BroadcastToChild();

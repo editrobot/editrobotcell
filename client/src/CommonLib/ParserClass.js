@@ -1,5 +1,16 @@
 import BaseClass from './BaseClass.js';
-import NumBaseClass from './NumBaseClass.js';
+// import plusClass from './plusClass.js';
+// import NumBaseClass from './NumBaseClass.js';
+import CommunicationClass from './CommunicationClass.js';
+
+// import StorageClass from './StorageClass.js';
+// var db = new StorageClass("ClientDB");
+// db.addData({abc:123});
+// db.readData(2);
+// db.resetData(2,"更新");
+// db.deleteData(2);
+// db.mapData();
+// db.removeDB();
 
 class MathBaseClass extends BaseClass{
 	constructor() {
@@ -11,6 +22,9 @@ class MathBaseClass extends BaseClass{
 
 		this.point = 0;
 		this.tempArray = [];
+		
+		var ccc = new CommunicationClass();
+		ccc.initclient();
 	}
 	Symbolsplit(str){
 		var temp = "";
@@ -183,36 +197,6 @@ class MathBaseClass extends BaseClass{
 class ParserClass extends MathBaseClass{
 	constructor() {
 		super();
-	}
-	inputcodetest(inputcode,cb){
-		var that = this;
-		this.assembly(inputcode).then((v)=>{
-			var sarray = that.Symbolsplit(v);
-			return that.assembly(sarray);
-		},(v)=>{that.trace(v)}).then((v)=>{
-			for(var i in v){
-				if(v[i] !== " "){
-					that.Symbol(v[i])
-				}
-			}
-			return that.assembly(that.structureTree);
-		},(v)=>{that.trace(v)})
-		.then((v)=>{
-			that.viewStack("in test:")
-			// that.process(v)
-		},(v)=>{that.trace(v)})
-		.finally(() => {
-			var temp = "";
-			// var i;
-			// for(i in that.ResultStack){
-				// temp = that.ResultStack[i].body + temp;
-			// }
-			if(typeof cb === "function"){
-				cb(temp)
-			}
-		}).then((v)=>{
-		},(v)=>{that.trace(v)})
-		.finally(() => {})
 	}
 	GetResult(inputcode,cb){
 		var that = this;
