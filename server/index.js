@@ -21,6 +21,7 @@ class ss extends base {
 		super();
 		this.ClientsTotals = 0;
 		this.CLIENTS = [];
+		this.TaskList = [];
 		this.DefineEnvironment();
 
 		this.server = app.listen(
@@ -50,12 +51,14 @@ class ss extends base {
 			if(!that.CLIENTS[i].active){
 				that.CLIENTS[i].active = true;
 				that.CLIENTS[i].handle = ws;
+				that.CLIENTS[i].Taskresult = [];
+				
 				lock = false;
 				break;
 			}
 		}
 		if(lock){
-			that.CLIENTS.push({"active":true,"handle":ws})
+			that.CLIENTS.push({"active":true,"handle":ws,"Taskresult":[]})
 			i = that.CLIENTS.length-1;
 		}
 		++this.ClientsTotals;
@@ -90,7 +93,7 @@ class ss extends base {
 			that.addNewclients(ws);
 
 			ws.on('message', function (message) {
-				that.messageProcess(JSON.parse(message));
+				that.messageProcess(JSON.parse(message),ws);
 			})
 			ws.on('close', function (message) {
 				for(i in that.CLIENTS){
@@ -140,9 +143,45 @@ class ss extends base {
 			}
 		});
 	}
-	messageProcess(msg){
+	messageProcess(msg,ws){
 		var that = this;
+		console.log("msg.head:",msg.head)
+		console.log("msg.FromId:",msg.FromId)
+		console.log("TaskList:",that.TaskList)
 		switch(msg.head){
+			case "TaskSubmit":
+				that.TaskList.unshift(msg)
+			break;
+			case "TaskRequest":
+				var temp = that.TaskList.pop()
+				if(typeof temp === "undefined"){
+					console.log("no any task...");
+					break;
+				}
+				temp["head"] = "Taskpackage";
+				ws.send(
+					JSON.stringify(temp),
+					(err) => {
+						if (err) {
+							console.log('[SERVER] error:',err);
+						}
+				});
+			break;
+			case "TaskComplete":
+				var i;
+				for(i in that.CLIENTS){
+					if(i === msg.FromId){
+						that.CLIENTS[i].handle.send(
+							JSON.stringify(msg),
+							(err) => {
+								if (err) {
+									console.log('[SERVER] error:',err);
+								}
+						});
+						break;
+					}
+				}
+			break;
 			default:
 				// ws.send(
 					// message,
@@ -152,6 +191,7 @@ class ss extends base {
 					// }
 				// });
 		}
+		console.log("TaskList:",that.TaskList)
 	}
 }
 

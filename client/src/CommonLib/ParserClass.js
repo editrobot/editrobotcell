@@ -1,16 +1,6 @@
 import BaseClass from './BaseClass.js';
 // import plusClass from './plusClass.js';
 // import NumBaseClass from './NumBaseClass.js';
-import CommunicationClass from './CommunicationClass.js';
-
-// import StorageClass from './StorageClass.js';
-// var db = new StorageClass("ClientDB");
-// db.addData({abc:123});
-// db.readData(2);
-// db.resetData(2,"更新");
-// db.deleteData(2);
-// db.mapData();
-// db.removeDB();
 
 class MathBaseClass extends BaseClass{
 	constructor() {
@@ -22,9 +12,6 @@ class MathBaseClass extends BaseClass{
 
 		this.point = 0;
 		this.tempArray = [];
-		
-		var ccc = new CommunicationClass();
-		ccc.initclient();
 	}
 	Symbolsplit(str){
 		var temp = "";
@@ -71,39 +58,6 @@ class MathBaseClass extends BaseClass{
 			}
 		}
 		return code1Permissions-code2Permissions
-	}
-	Symbol(code){
-		if(typeof this.structureTree[this.point] === "undefined"){
-			this.structureTree[this.point] = [];
-		}
-		switch(isNaN(code)){
-			case false:
-				this.structureTree[this.point].push({"format":"num","body":parseFloat(code)})
-			break;
-			case true:
-			switch(code){
-				case "(":
-					this.structureTree[this.point].push({"format":"point"})
-					this.point++;
-				break;
-				case ")":
-					this.structureTree[this.point].push({"format":"split"})
-					this.point--;
-				break;
-				case "!":
-					var tempnum = this.structureTree[this.point][this.structureTree[this.point].length-1].body
-					while(tempnum !== 1){
-						--tempnum;
-						this.structureTree[this.point].push({"format":"Symbol","body":"*"})
-						this.structureTree[this.point].push({"format":"num","body":tempnum})
-					}
-				break;
-				default:
-					this.structureTree[this.point].push({"format":"Symbol","body":code})
-			}
-			break;
-			default:
-		}
 	}
 	calc(Symbol,code1,code2){
 		switch(Symbol.body){
@@ -171,6 +125,54 @@ class MathBaseClass extends BaseClass{
 		}
 		this.tempArray = [];
 	}
+	MakestructureTree(inputcode){
+		function Symbol(structureTree,point,code){
+			if(typeof structureTree[point] === "undefined"){structureTree[point] = [];}
+			switch(isNaN(code)){
+				case false:
+					structureTree[point].push({"format":"num","body":parseFloat(code)})
+				break;
+				case true:
+				switch(code){
+					case "(":
+						structureTree[point].push({"format":"point"})
+						point++;
+					break;
+					case ")":
+						structureTree[point].push({"format":"split"})
+						point--;
+					break;
+					case "!":
+						var tempnum = structureTree[point][structureTree[point].length-1].body
+						while(tempnum !== 1){
+							--tempnum;
+							structureTree[point].push({"format":"Symbol","body":"*"})
+							structureTree[point].push({"format":"num","body":tempnum})
+						}
+					break;
+					default:
+						structureTree[point].push({"format":"Symbol","body":code})
+				}
+				break;
+				default:
+			}
+			return {"structureTree":structureTree,"point":point}
+		}
+		var point = 0;
+		var structureTree = [];
+		var i;
+		var that = this;
+		var temp;
+		var tempArray = that.Symbolsplit(inputcode).concat();
+		for(i in tempArray){
+			if(tempArray[i] !== " "){
+				temp = Symbol(structureTree,point,tempArray[i])
+				structureTree = temp.structureTree;
+				point = temp.point;
+			}
+		}
+		return structureTree;
+	}
 	viewStack(text){
 		var i;
 		console.log("----------------------------")
@@ -198,17 +200,18 @@ class ParserClass extends MathBaseClass{
 	constructor() {
 		super();
 	}
+	
+	testResult(inputcode){
+		var i;
+		var structureTree = this.MakestructureTree(inputcode);
+		for(i in structureTree){
+			console.log(structureTree[i])
+		}
+	}
 	GetResult(inputcode,cb){
 		var that = this;
 		this.assembly(inputcode).then((v)=>{
-			return that.assembly(that.Symbolsplit(v).concat());
-		},(v)=>{that.trace(v)}).then((v)=>{
-			for(var i in v){
-				if(v[i] !== " "){
-					that.Symbol(v[i])
-				}
-			}
-			return that.assembly(that.structureTree);
+			return that.assembly(that.MakestructureTree(v));
 		},(v)=>{that.trace(v)})
 		.then((v)=>{
 			that.process(v)
