@@ -89,7 +89,7 @@ class MathBaseClass extends BaseClass{
 			this.Symbolprocess(Symbol);
 		}
 	}
-	Classified(list){
+	Classified(list,tempArray){
 		var temppoint = 0;
 		for(var i in list){
 			switch(list[i].format){
@@ -103,7 +103,7 @@ class MathBaseClass extends BaseClass{
 					this.ResultStack.push(this.calc(this.SymbolStack.pop(),this.ResultStack.pop(),this.ResultStack.pop()))
 				break;
 				case "point":
-					this.ResultStack.push(this.tempArray[temppoint])
+					this.ResultStack.push(tempArray[temppoint])
 					temppoint++;
 				break;
 				default:
@@ -117,13 +117,14 @@ class MathBaseClass extends BaseClass{
 		}
 	}
 	process(structureTree){
+		var tempArray;
 		while(structureTree.length !== 0){
 			this.SymbolStack = [];
-			this.tempArray = this.ResultStack;
+			tempArray = this.ResultStack;
 			this.ResultStack = [];
-			this.Classified(structureTree.pop());
+			this.Classified(structureTree.pop(),tempArray);
 		}
-		this.tempArray = [];
+		tempArray = [];
 	}
 	MakestructureTree(inputcode){
 		function Symbol(structureTree,point,code){
@@ -188,10 +189,6 @@ class MathBaseClass extends BaseClass{
 		console.log("ResultStack:")
 		for(i in this.ResultStack){
 			console.log(this.ResultStack[i])
-		}
-		console.log("tempArray:")
-		for(i in this.tempArray){
-			console.log(this.tempArray[i])
 		}
 	}
 }

@@ -28,15 +28,26 @@ class CommunicationClass extends BaseClass{
 			"MakestructureTree" : (Task) =>{
 				Task.head = "TaskSubmit";
 				Task.method = "Result";
-				Task.body = Task.body+"MakestructureTree";
+				var Parser = new ParserClass();
+				var temp = Parser.MakestructureTree(Task.body);
+				Task.body = temp;
 				this.setMsg("run MakestructureTree");
+				this.setMsg(JSON.stringify(temp));
 				return Task;
 			},
 			"Result" : (Task) =>{
 				Task.head = "TaskComplete";
 				Task.method = "complete";
-				Task.body = Task.body+"complete";
+				var Parser = new ParserClass();
+				Parser.process(Task.body);
+				var temp = "";
+				var i;
+				for(i in Parser.ResultStack){
+					temp = Parser.ResultStack[i].body + temp;
+				}
+				Task.body = temp;
 				this.setMsg("run Result");
+				this.setMsg(temp);
 				return Task;
 			}
 		}
@@ -192,8 +203,9 @@ class CommunicationClass extends BaseClass{
 				that.setMsg('[SERVER] broadcast from server:'+msg.body);
 			break;
 			case "Taskpackage":
-				that.setMsg('[SERVER] get Taskpackage TaskID :'+msg.TaskID);
-				that.setMsg('[SERVER] get Taskpackage from client :'+msg.FromId);
+				that.setMsg('[SERVER] Taskpackage`s TaskID :'+msg.TaskID);
+				that.setMsg('[SERVER] Taskpackage`s from client :'+msg.FromId);
+				that.setMsg('[SERVER] Taskpackage`s main message :'+msg.body);
 				var TaskResult = this.Worker[msg.method](msg)
 				console.log("get Taskpackage:")
 				console.log(TaskResult)
