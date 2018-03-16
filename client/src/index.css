@@ -7,7 +7,30 @@ body {
 	height:100%;
 	width:100%;
 }
+#root{
+	background-color: #a488a6;
+}
+.textFont{
+	color:#ffe6c9;
+}
 
-.box{
-	width:100%;
+#forcechart,#bundlechart{
+	text-align: center;
+}
+
+.node circle {
+	stroke: black;
+	stroke-width: 2px;
+}
+
+.node text{
+	font-size: 13px;
+	font-family: simsun;
+}
+
+.link {
+	fill: none;
+	stroke: black;
+	stroke-opacity: .5;
+	stroke-width: 1px;
 }

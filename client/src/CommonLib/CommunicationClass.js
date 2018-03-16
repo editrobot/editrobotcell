@@ -21,7 +21,6 @@ class CommunicationClass extends BaseClass{
 
 		// this.db = new StorageClass("TaskList");
 		// this.db.removeDB();
-
 		this.CommunicationMode = "websocket"
 		this.port = this.GetQueryString("wsp");
 		this.Worker = {
@@ -57,13 +56,18 @@ class CommunicationClass extends BaseClass{
 		this.TaskList = [];
 		this.TaskResult = [];
 		this.TaskComplete = [];
+		
+		this.setMsgevent;
 	}
 
 	setMsg(msg){
-		if(this.msg.length > 10){
+		if(this.msg.length > 1e1){
 			this.msg.pop();
 		}
 		this.msg.unshift(msg)
+		if(typeof this.setMsgevent === "function"){
+			this.setMsgevent(this.msg);
+		}
 	}
 
 	initclient(cb){
@@ -78,7 +82,7 @@ class CommunicationClass extends BaseClass{
 		};
 		this.ws.onmessage = function (message) {
 			// that.trace('[SERVER] reply:'+JSON.parse(message.data));
-			that.messageProcess(JSON.parse(message.data));
+			that.messageProcess(JSON.parse(message.data),cb);
 		}
 		this.onclose();
 	}
@@ -156,7 +160,6 @@ class CommunicationClass extends BaseClass{
 	}
 
 	TaskResultPop(){
-		var that = this;
 		if(this.TaskResult.length !== 0){
 			var temp = this.TaskResult.shift()
 			console.log("TaskResultPop");
@@ -166,7 +169,6 @@ class CommunicationClass extends BaseClass{
 	}
 	
 	TaskCompletePop(){
-		var that = this;
 		var i;
 		if(this.TaskComplete.length !== 0){
 			var temp = this.TaskComplete.shift()
@@ -191,7 +193,7 @@ class CommunicationClass extends BaseClass{
 		}
 	}
 
-	messageProcess(msg){
+	messageProcess(msg,cb){
 		var that = this;
 		switch(msg.head){
 			case "clientID":
@@ -199,8 +201,9 @@ class CommunicationClass extends BaseClass{
 				that.MyID = msg.body;
 			break;
 			case "broadcast":
-				that.trace('[SERVER] broadcast from server:'+msg.body);
-				that.setMsg('[SERVER] broadcast from server:'+msg.body);
+				console.log(msg.body.ClientsTotals)
+				that.trace('[SERVER] broadcast from server:'+msg.body.msg);
+				that.setMsg('[SERVER] broadcast from server:'+msg.body.msg);
 			break;
 			case "Taskpackage":
 				that.setMsg('[SERVER] Taskpackage`s TaskID :'+msg.TaskID);
@@ -226,6 +229,9 @@ class CommunicationClass extends BaseClass{
 			break;
 			default:
 				that.trace('[SERVER] receive unknow message:'+msg.body);
+		}
+		if(typeof cb === "function"){
+			cb(msg)
 		}
 	}
 }

@@ -26,7 +26,7 @@ class ss extends base {
 
 		this.server = app.listen(
 			this.serverport, () => {
-				// console.log('child on: '+this.serverport+'!')
+				console.log('child on: '+this.serverport+'!')
 			}
 		)
 
@@ -130,13 +130,19 @@ class ss extends base {
 				case "BroadcastAddID":
 					that.wss.broadcast(JSON.stringify({
 						"head":"broadcast",
-						"body":"client ID "+m.body+" join"
+						"body":{
+							"ClientsTotals":that.ClientsTotals,
+							"msg":"client ID "+m.body+" join"
+						}
 					}));
 				break;
 				case "BroadcastCloseID":
 					that.wss.broadcast(JSON.stringify({
 						"head":"broadcast",
-						"body":"client ID "+m.body+" close"
+						"body":{
+							"ClientsTotals":that.ClientsTotals,
+							"msg":"client ID "+m.body+" close"
+						}
 					}));
 				break;
 				default:
@@ -149,6 +155,9 @@ class ss extends base {
 		console.log("msg.FromId:",msg.FromId)
 		console.log("TaskList:",that.TaskList)
 		switch(msg.head){
+			case "TaskSubmit":
+				that.TaskList.unshift(msg)
+			break;
 			case "TaskSubmit":
 				that.TaskList.unshift(msg)
 			break;
