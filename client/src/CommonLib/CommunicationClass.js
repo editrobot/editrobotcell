@@ -57,7 +57,8 @@ class CommunicationClass extends BaseClass{
 		this.TaskResult = [];
 		this.TaskComplete = [];
 		
-		this.setMsgevent;
+		this.setMsgevent = ()=>{};
+		this.getMsgevent = ()=>{};
 	}
 
 	setMsg(msg){
@@ -70,7 +71,7 @@ class CommunicationClass extends BaseClass{
 		}
 	}
 
-	initclient(cb){
+	initclient(){
 		var that = this;
 		if(this.port === null){
 			window.location="http://localhost:3001/auto";
@@ -82,7 +83,7 @@ class CommunicationClass extends BaseClass{
 		};
 		this.ws.onmessage = function (message) {
 			// that.trace('[SERVER] reply:'+JSON.parse(message.data));
-			that.messageProcess(JSON.parse(message.data),cb);
+			that.messageProcess(JSON.parse(message.data));
 		}
 		this.onclose();
 	}
@@ -193,7 +194,7 @@ class CommunicationClass extends BaseClass{
 		}
 	}
 
-	messageProcess(msg,cb){
+	messageProcess(msg){
 		var that = this;
 		switch(msg.head){
 			case "clientID":
@@ -230,8 +231,8 @@ class CommunicationClass extends BaseClass{
 			default:
 				that.trace('[SERVER] receive unknow message:'+msg.body);
 		}
-		if(typeof cb === "function"){
-			cb(msg)
+		if(typeof this.getMsgevent === "function"){
+			this.getMsgevent(msg);
 		}
 	}
 }

@@ -1,13 +1,13 @@
 import BaseClass from './BaseClass.js';
 
 class WebRTCClass extends BaseClass{
-	constructor(dbname) {
+	constructor() {
 		super();
 		navigator.getUserMedia  = navigator.getUserMedia ||
                           navigator.webkitGetUserMedia ||
                           navigator.mozGetUserMedia ||
                           navigator.msGetUserMedia;
-		
+		this.videoData = ()=>{};
 	}
 	RTCText(){
 		var that = this;
@@ -195,23 +195,33 @@ class WebRTCClass extends BaseClass{
 				});
 		}
 	}
-	VideoInit(){
+	VideoInit(id){
 		if (navigator.getUserMedia) {
 			navigator.getUserMedia({video: true,audio: true},
 				(stream)=>{
-					var video = document.getElementById('webcam');
+					var video = document.getElementById(id);
 					if (window.URL) {
 						video.src = window.URL.createObjectURL(stream);
 					} else {
 						video.src = stream;
 					}
-					video.autoplay = true; 
+					console.log(video.src)
+					video.autoplay = true;
+					video.controls = true;
+					video.muted = true;
+					video.onclick=function(){
+						if(video.paused){
+							video.play();
+						}else{
+							video.pause();
+						}
+					}
 				},
 				(error)=>{
 					console.log("navigator.getUserMedia error: ", error);
 				});
 		} else {
-			document.getElementById('webcam').src = 'video.mp4';
+			document.getElementById(id).src = 'video.mp4';
 		}
 	}
 }

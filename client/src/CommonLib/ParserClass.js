@@ -60,19 +60,25 @@ class MathBaseClass extends BaseClass{
 		return code1Permissions-code2Permissions
 	}
 	calc(Symbol,code1,code2){
-		switch(Symbol.body){
-			case "^":
-				return {"format":"num","body":Math.pow(code2.body,code1.body)}
-			case "*":
-				return {"format":"num","body":code2.body*code1.body}
-			case "/":
-				return {"format":"num","body":code2.body/code1.body}
-			case "+":
-				return {"format":"num","body":code2.body+code1.body}
-			case "-":
-				return {"format":"num","body":code2.body-code1.body}
-			default:
-				return {"format":"num","body":0}
+		if((typeof code2 !== "undefined") &&
+			(typeof code1 !== "undefined") &&
+			(typeof Symbol !== "undefined")){
+			switch(Symbol.body){
+				case "^":
+					return {"format":"num","body":Math.pow(code2.body,code1.body)}
+				case "*":
+					return {"format":"num","body":code2.body*code1.body}
+				case "/":
+					return {"format":"num","body":code2.body/code1.body}
+				case "+":
+					return {"format":"num","body":code2.body+code1.body}
+				case "-":
+					return {"format":"num","body":code2.body-code1.body}
+				default:
+					return {"format":"num","body":0}
+			}
+		}else{
+			return {"format":"num","body":0}
 		}
 	}
 	Symbolprocess(Symbol){
@@ -194,10 +200,6 @@ class MathBaseClass extends BaseClass{
 }
 
 class ParserClass extends MathBaseClass{
-	constructor() {
-		super();
-	}
-	
 	testResult(inputcode){
 		var i;
 		var structureTree = this.MakestructureTree(inputcode);

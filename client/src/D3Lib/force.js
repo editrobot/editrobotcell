@@ -17,10 +17,10 @@ class force extends D3chart {
 	
 	setTotals(Totals){
 		var nodes = [
-			{ name: "master" },
-			{ name: "server1" },
-			{ name: "server2" },
-			{ name: "server3" }
+			{ name: "m" },
+			{ name: "c1" },
+			{ name: "c2" },
+			{ name: "c3" }
 		];
 
 		var edges = [
@@ -30,8 +30,8 @@ class force extends D3chart {
 		];
 		while(Totals !== 0){
 			--Totals;
-			nodes.push({ name: "node "+Totals });
-			edges.push({ source : 1  , target: nodes.length-1 });
+			nodes.push({ name: ""+Totals });
+			edges.push({ source : 1  , target: (nodes.length-1) });
 		}
 		this.chart(nodes,edges)
 	}

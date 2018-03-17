@@ -151,9 +151,6 @@ class ss extends base {
 	}
 	messageProcess(msg,ws){
 		var that = this;
-		console.log("msg.head:",msg.head)
-		console.log("msg.FromId:",msg.FromId)
-		console.log("TaskList:",that.TaskList)
 		switch(msg.head){
 			case "TaskSubmit":
 				that.TaskList.unshift(msg)
@@ -164,17 +161,17 @@ class ss extends base {
 			case "TaskRequest":
 				var temp = that.TaskList.pop()
 				if(typeof temp === "undefined"){
-					console.log("no any task...");
 					break;
+				}else{
+					temp["head"] = "Taskpackage";
+					ws.send(
+						JSON.stringify(temp),
+						(err) => {
+							if (err) {
+								console.log('[SERVER] error:',err);
+							}
+					});
 				}
-				temp["head"] = "Taskpackage";
-				ws.send(
-					JSON.stringify(temp),
-					(err) => {
-						if (err) {
-							console.log('[SERVER] error:',err);
-						}
-				});
 			break;
 			case "TaskComplete":
 				var i;
@@ -200,7 +197,6 @@ class ss extends base {
 					// }
 				// });
 		}
-		console.log("TaskList:",that.TaskList)
 	}
 }
 

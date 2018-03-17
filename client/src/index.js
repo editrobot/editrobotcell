@@ -1,26 +1,30 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Panel,Label,
-	ListGroup,
-	ListGroupItem,
-	ButtonGroup,Button,DropdownButton,
-	FormGroup,
+
+import { Panel,
+	ListGroup,ListGroupItem,
+	ButtonGroup,Button,
 	MenuItem,
-	Navbar,
-	Nav,
-	NavItem,
-	NavDropdown,
-	ControlLabel,
-	FormControl } from 'react-bootstrap';
+	Navbar,Nav,NavItem,NavDropdown,
+	FormGroup,FormControl } from 'react-bootstrap';
 import './index.css';
+
 import CommunicationClass from './CommonLib/CommunicationClass.js';
-import D3chart from './D3Lib/D3chart.js';
+import WebRTCClass from './CommonLib/WebRTCClass.js';
+
 import bundle from './D3Lib/bundle.js';
 import force from './D3Lib/force.js';
+
+import LanguageClass from './ui/LanguageClass.js';
+
 
 class App extends React.Component {
 	constructor(props) {
 		super(props);
+		this.ccc = new CommunicationClass();
+		this.rtc = new WebRTCClass();
+		this.lug = new LanguageClass();
+
 		this.state = {
 			"MyID":0,
 			"clients":0,
@@ -28,39 +32,46 @@ class App extends React.Component {
 			"longitude":0,
 			"latitude":0,
 			"notice":[],
-			"InputHistory":[]
+			"InputHistory":[],
+			"UILanguage" : this.lug.outPutUIText("cn")
 		};
 
-		this.ccc = new CommunicationClass();
+
+		this.rtc.VideoInit("videoFrame");
 		this.getGpsInfo()
+		this.updataUIText = this.updataUIText.bind(this);
+	}
+	updataUIText(inputdata){
+		this.setState({
+			UILanguage: this.lug.outPutUIText(inputdata)
+		});
 	}
 	getGpsInfo(){
 		var that = this;
 		if (navigator.geolocation){
-			
+			navigator.geolocation.getCurrentPosition(
+				(pos)=>{
+					that.setState({ longitude: pos.coords.longitude });
+					that.setState({ latitude: pos.coords.latitude });
+					console.log("At " +
+						new Date(pos.timestamp).toLocaleString() + " you were within " +
+						pos.coords.accuracy + " meters of latitude " +
+						pos.coords.latitude + " longitude " +
+						pos.coords.longitude + ".");
+				},
+				(e)=>{
+					console.log("Geolocation erro "+e.code+":"+e.message);
+					that.setState({
+						gpsText: "Geolocation erro "+e.code+":"+e.message
+					});
+				},
+				{
+				enableHighAccuracy: true,
+				maximumAge: 0,
+				timeout: 15000
+				}
+			);
 		}
-		navigator.geolocation.getCurrentPosition(
-			(pos)=>{
-				that.setState({ longitude: pos.coords.longitude });
-				that.setState({ latitude: pos.coords.latitude });
-				console.log("At " +
-					new Date(pos.timestamp).toLocaleString() + " you were within " +
-					pos.coords.accuracy + " meters of latitude " +
-					pos.coords.latitude + " longitude " +
-					pos.coords.longitude + ".");
-			},
-			(e)=>{
-				console.log("Geolocation erro "+e.code+":"+e.message);
-				that.setState({
-					gpsText: "Geolocation erro "+e.code+":"+e.message
-				});
-			},
-			{
-			enableHighAccuracy: true,
-			maximumAge: 0,
-			timeout: 15000
-			}
-		);
 	}
 	componentDidMount() {
 		// console.log("componentDidMount")
@@ -70,7 +81,6 @@ class App extends React.Component {
 		var inputtextarea = document.querySelector('textarea#inputtextarea');
 		var outputtextarea = document.querySelector('textarea#outputtextarea');
 		var processButton = document.querySelector('button#processButton');
-		var RequestButton = document.querySelector('button#RequestButton');
 		var cleanhistoryButton = document.querySelector('button#cleanhistoryButton');
 
 		processButton.onclick = function () {
@@ -80,10 +90,9 @@ class App extends React.Component {
 			that.setState({
 				InputHistory: that.state.InputHistory.concat([inputtextarea.value])
 			});
+			outputtextarea.value = that.state.UILanguage["calculating..."];
 		};
-		RequestButton.onclick = function () {
-			that.ccc.TaskRequest();
-		};
+		setInterval(()=>{that.ccc.TaskRequest()},800);
 		cleanhistoryButton.onclick = function () {
 			console.log("click cleanhistoryButton")
 			that.InputHistory = []
@@ -97,7 +106,7 @@ class App extends React.Component {
 				notice: msg
 			});
 		}
-		this.ccc.initclient((msg)=>{
+		this.ccc.getMsgevent = (msg)=>{
 			switch(msg.head){
 				case "clientID":
 					that.setState({
@@ -115,7 +124,8 @@ class App extends React.Component {
 				break;
 				default:
 			}
-		});
+		}
+		this.ccc.initclient();
 	}
 
 	componentWillUnmount() {
@@ -134,17 +144,18 @@ class App extends React.Component {
 				<Navbar inverse collapseOnSelect>
 					<Navbar.Header>
 					<Navbar.Brand>
-					<a href="#">@</a>
+					<a>@</a>
 					</Navbar.Brand>
 					</Navbar.Header>
 					<Nav>
-					<NavItem href="#">MyID: {this.state.MyID}</NavItem>
-					<NavItem href="#">Total number of clients: {this.state.clients}</NavItem>
+					<NavItem href="#">{this.state.UILanguage["MyID"]}: {this.state.MyID}</NavItem>
+					<NavItem href="#">{this.state.UILanguage["Total number of clients"]}: {this.state.clients}</NavItem>
 					<NavDropdown title="language" id="basic-nav-dropdown">
-					<MenuItem>English</MenuItem>
+					<MenuItem onClick={()=>{this.updataUIText("en")}}>English</MenuItem>
 					<MenuItem divider />
-					<MenuItem>にほんご</MenuItem>
-					<MenuItem>中文</MenuItem>
+					<MenuItem onClick={()=>{this.updataUIText("cn")}}>中文</MenuItem>
+					<MenuItem divider />
+					<MenuItem onClick={()=>{this.updataUIText("jp")}}>にほんご</MenuItem>
 					</NavDropdown>
 					</Nav>
 				</Navbar>
@@ -154,35 +165,37 @@ class App extends React.Component {
 							<div className="row">
 								<div className="col-md-6">
 									<FormGroup controlId="inputtextarea">
-									<ControlLabel className="textFont">Textarea</ControlLabel>
-									<FormControl componentClass="textarea" id="inputtextarea" placeholder="please input code here" />
+									<FormControl componentClass="textarea" id="inputtextarea" placeholder={this.state.UILanguage["please input code here"]} />
 									</FormGroup>
 								</div>
 								<div className="col-md-6">
 									<FormGroup controlId="outputtextarea">
-									<ControlLabel className="textFont">Textarea</ControlLabel>
-									<FormControl componentClass="textarea" id="outputtextarea" placeholder="this is out put result" />
+									<FormControl
+										componentClass="textarea"
+										id="outputtextarea"
+										placeholder={this.state.UILanguage["this is out put result"]}
+										value=""
+									/>
 									</FormGroup>
 								</div>
 								<div className="col-md-12">
 									<div className="panel panel-default">
 									<div className="panel-body">
 										<ButtonGroup>
-										<Button id="processButton">process</Button>
-										<Button id="RequestButton">next step</Button>
-										<Button id="cleanhistoryButton">clean input history</Button>
+										<Button id="processButton">{this.state.UILanguage["begin process"]}</Button>
+										<Button id="cleanhistoryButton">{this.state.UILanguage["clean input history"]}</Button>
 										</ButtonGroup>
 									</div>
 									</div>
 								</div>
 								<div className="col-md-12">
 									<Panel>
-									<Panel.Heading>Message panel</Panel.Heading>
-									<Panel.Body>NOTICE</Panel.Body>
+									<Panel.Heading>{this.state.UILanguage["Message panel"]}</Panel.Heading>
+									<Panel.Body>{this.state.UILanguage["NOTICE"]}</Panel.Body>
 									<ListGroup>{listItems}</ListGroup>
-									<Panel.Body>input history</Panel.Body>
+									<Panel.Body>{this.state.UILanguage["input history"]}</Panel.Body>
 									<ListGroup>{InputHistorylistItems}</ListGroup>
-									<Panel.Body>The End</Panel.Body>
+									<Panel.Body>{this.state.UILanguage["The End"]}</Panel.Body>
 									</Panel>
 								</div>
 							</div>
@@ -191,21 +204,19 @@ class App extends React.Component {
 							<div className="row">
 							<div className="col-md-12">
 								<Panel>
-								<Panel.Heading>YOUR GEOLOCATION</Panel.Heading>
+								<Panel.Heading>{this.state.UILanguage["YOUR GEOLOCATION"]}</Panel.Heading>
 								<Panel.Body>
-								<p>longitude:{this.state.longitude}</p>
-								<p>latitude:{this.state.latitude}</p>
+								<p>{this.state.UILanguage["longitude"]}:{this.state.longitude}</p>
+								<p>{this.state.UILanguage["latitude"]}:{this.state.latitude}</p>
 								<p>{this.state.gpsText}</p>
 								</Panel.Body>
 								</Panel>
 							</div>
+							<video id="videoFrame" className="col-md-12"></video>
 							<div id="forcechart" className="col-md-12"></div>
 							<div id="bundlechart" className="col-md-12"></div>
 							</div>
 						</div>
-					</div>
-					<div className="row">
-						
 					</div>
 				</div>
 			</div>

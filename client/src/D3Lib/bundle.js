@@ -19,22 +19,22 @@ class bundle extends D3chart {
 		var childnode = {
 			name: "",
 			children:[
-				{ name: "master" },
-				{ name: "server1" },
-				{ name: "server2" },
-				{ name: "server3" }
+				{ name: "m" },
+				{ name: "cc1" },
+				{ name: "cc2" },
+				{ name: "cc3" }
 			]
 		};
 		
 		var childnodeline = [
-			{source: "master", target: "server1"},
-			{source: "master", target: "server2"},
-			{source: "master", target: "server3"}
+			{source: "m", target: "cc1"},
+			{source: "m", target: "cc2"},
+			{source: "m", target: "cc3"}
 		];
 		while(Totals !== 0){
 			--Totals;
-			childnode.children.push({ name: "node "+Totals })
-			childnodeline.push({source: "server1", target: "node "+Totals})
+			childnode.children.push({ name: ""+Totals })
+			childnodeline.push({source: "cc1", target: ""+Totals})
 		}
 		this.chart(childnode,childnodeline)
 	}
@@ -48,8 +48,8 @@ class bundle extends D3chart {
 		
 		//2. 转换数据
 		var cluster = d3.layout.cluster()
-				.size([450, this.width/2 - 50])
-				.separation(function(a, b) { return (a.parent == b.parent ? 1 : 2) / a.depth; });
+				.size([270, this.width/2 - 50])
+				.separation(function(a, b) { return (a.parent === b.parent ? 1 : 2) / a.depth; });
 
 		var bundle = d3.layout.bundle();				
 
@@ -64,12 +64,13 @@ class bundle extends D3chart {
 		
 		//将links中的source和target由名称替换成节点
 		function map( nodes, links ){
+			var i;
 			var hash = [];
-			for(var i = 0; i < nodes.length; i++){
+			for(i = 0; i < nodes.length; i++){
 				hash[nodes[i].name] = nodes[i];
 			}
 			var resultLinks = [];
-			for(var i = 0; i < links.length; i++){
+			for(i = 0; i < links.length; i++){
 				resultLinks.push({  source: hash[ links[i].source ], 
 									target: hash[ links[i].target ]
 								});
@@ -88,14 +89,12 @@ class bundle extends D3chart {
 					.attr("transform", "translate(" + (this.width/2) + "," + (this.height/2) + ")");
 		
 		var color = d3.scale.category20c();
-			
-		var link = gBundle.selectAll(".link")
+		gBundle.selectAll(".link")
 			  .data(links)
 			  .enter()
 			  .append("path")
 			  .attr("class", "link")
 			  .attr("d", line);	//使用线段生成器
-			
 		
 		var node = gBundle.selectAll(".node")
 			  .data( nodes.filter(function(d) { return !d.children; }) )
