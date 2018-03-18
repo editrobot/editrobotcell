@@ -23,7 +23,7 @@ class LanguageClass {
 				"name":"this is out put result",
 				"en":"this is out put result",
 				"jp":"これは結果を出したものです",
-				"cn":"这里将会输入处理结果"
+				"cn":"这里将会输出处理结果"
 			},
 			{
 				"name":"begin process",

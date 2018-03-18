@@ -30,6 +30,7 @@ class CommunicationClass extends BaseClass{
 				var Parser = new ParserClass();
 				var temp = Parser.MakestructureTree(Task.body);
 				Task.body = temp;
+				
 				this.setMsg("run MakestructureTree");
 				this.setMsg(JSON.stringify(temp));
 				return Task;
@@ -52,11 +53,11 @@ class CommunicationClass extends BaseClass{
 		}
 		this.MyID = -1;
 		this.msg = [];
+		this.TaskRequestfrequency = 1000;
 		this.TaskCount = 0;
 		this.TaskList = [];
 		this.TaskResult = [];
 		this.TaskComplete = [];
-		
 		this.setMsgevent = ()=>{};
 		this.getMsgevent = ()=>{};
 	}
@@ -80,6 +81,7 @@ class CommunicationClass extends BaseClass{
 		this.ws.onopen = function () {
 			that.trace("onopen");
 			that.setMsg("this client has link to server!")
+			that.TaskRequest();
 		};
 		this.ws.onmessage = function (message) {
 			// that.trace('[SERVER] reply:'+JSON.parse(message.data));
@@ -150,10 +152,12 @@ class CommunicationClass extends BaseClass{
 	}
 
 	TaskRequest(){
+		var that = this;
 		this.ws.send(JSON.stringify({
-			"FromId" : this.MyID,
+			"FromId" : that.MyID,
 			"head":"TaskRequest",
 		}));
+		setTimeout(()=>{that.TaskRequest()},this.TaskRequestfrequency);
 	}
 
 	TaskResultSubmit(TaskResult){
@@ -203,6 +207,8 @@ class CommunicationClass extends BaseClass{
 			break;
 			case "broadcast":
 				console.log(msg.body.ClientsTotals)
+				that.TaskRequestfrequency = 100+msg.body.ClientsTotals
+				console.log("TaskRequestfrequency:",that.TaskRequestfrequency)
 				that.trace('[SERVER] broadcast from server:'+msg.body.msg);
 				that.setMsg('[SERVER] broadcast from server:'+msg.body.msg);
 			break;

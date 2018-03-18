@@ -5,7 +5,16 @@ import BaseClass from './BaseClass.js';
 class MathBaseClass extends BaseClass{
 	constructor() {
 		super();
-		this.SymbolPermissions = [["+","-"],["*","/"],["^","!"]];
+		this.SymbolPermissions = [
+			["||"],
+			["&&"],
+			["|"],
+			["&"],
+			["<<",">>"],
+			["+","-"],
+			["%","*","/"],
+			["^","!"]
+		];
 		this.SymbolStack = [];
 		this.ResultStack = [];
 		this.structureTree = [];
@@ -14,6 +23,7 @@ class MathBaseClass extends BaseClass{
 		this.tempArray = [];
 	}
 	Symbolsplit(str){
+		var isNaNMode;
 		var temp = "";
 		var sarray = str.split("");
 		var result = [];
@@ -21,18 +31,25 @@ class MathBaseClass extends BaseClass{
 		for (var i in sarray){
 			switch(isNaN(sarray[i])){
 				case true:
-					if(sarray[i] === "."){
-						temp = temp+sarray[i];
+					if(sarray[i] !== "."){
+						if(!isNaNMode){
+							if(temp !== ""){
+								result.push(temp);
+								temp = "";
+							}
+							isNaNMode = true;
+						}
 					}
-					else{
+					temp = temp+sarray[i];
+				break;
+				case false:
+					if(isNaNMode){
 						if(temp !== ""){
 							result.push(temp);
 							temp = "";
 						}
-						result.push(sarray[i]);
+						isNaNMode = false;
 					}
-				break;
-				case false:
 					temp = temp+sarray[i];
 				break;
 				default:
@@ -74,6 +91,20 @@ class MathBaseClass extends BaseClass{
 					return {"format":"num","body":code2.body+code1.body}
 				case "-":
 					return {"format":"num","body":code2.body-code1.body}
+				case "&":
+					return {"format":"num","body":code2.body&code1.body}
+				case "&&":
+					return {"format":"num","body":code2.body&&code1.body}
+				case "|":
+					return {"format":"num","body":code2.body|code1.body}
+				case "||":
+					return {"format":"num","body":code2.body||code1.body}
+				case "%":
+					return {"format":"num","body":code2.body%code1.body}
+				case "<<":
+					return {"format":"num","body":code2.body<<code1.body}
+				case ">>":
+					return {"format":"num","body":code2.body>>code1.body}
 				default:
 					return {"format":"num","body":0}
 			}

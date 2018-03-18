@@ -32,6 +32,7 @@ class App extends React.Component {
 			"longitude":0,
 			"latitude":0,
 			"notice":[],
+			"outputFrame":"",
 			"InputHistory":[],
 			"UILanguage" : this.lug.outPutUIText("cn")
 		};
@@ -85,14 +86,17 @@ class App extends React.Component {
 
 		processButton.onclick = function () {
 			that.ccc.TaskSubmit(inputtextarea.value,(v)=>{
-				outputtextarea.value = v;
+				that.setState({
+					outputFrame: v
+				});
 			});
 			that.setState({
 				InputHistory: that.state.InputHistory.concat([inputtextarea.value])
 			});
-			outputtextarea.value = that.state.UILanguage["calculating..."];
+			that.setState({
+				outputFrame: that.state.UILanguage["calculating..."]
+			});
 		};
-		setInterval(()=>{that.ccc.TaskRequest()},800);
 		cleanhistoryButton.onclick = function () {
 			console.log("click cleanhistoryButton")
 			that.InputHistory = []
@@ -174,7 +178,7 @@ class App extends React.Component {
 										componentClass="textarea"
 										id="outputtextarea"
 										placeholder={this.state.UILanguage["this is out put result"]}
-										value=""
+										value={this.state.outputFrame}
 									/>
 									</FormGroup>
 								</div>
