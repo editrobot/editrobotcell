@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 
 import { Panel,
 	ListGroup,ListGroupItem,
-	ButtonGroup,Button,
+	Button,
 	MenuItem,
 	Navbar,Nav,NavItem,NavDropdown,
 	FormGroup,FormControl } from 'react-bootstrap';
@@ -32,15 +32,59 @@ class App extends React.Component {
 			"longitude":0,
 			"latitude":0,
 			"notice":[],
+			"inputFrame":"",
 			"outputFrame":"",
+			"KeyBoardlayoutStyleLeft":"col-xs-9 col-sm-9 col-md-9 col-lg-9 KeyFrame",
+			"KeyBoardlayoutStyleRight":"col-xs-3 col-sm-3 col-md-3 col-lg-3 KeyFrame",
+			"KeyBoardStyle":"col-xs-4 col-sm-4 col-md-4 col-lg-4",
+			"KeyBoardSymbolStyle":"col-xs-3 col-sm-2 col-md-2 col-lg-2 KeyFrame",
 			"InputHistory":[],
 			"UILanguage" : this.lug.outPutUIText("cn")
 		};
 
 
-		this.rtc.VideoInit("videoFrame");
+		// this.rtc.VideoInit("videoFrame");
 		this.getGpsInfo()
+		this.processButton = this.processButton.bind(this);
+		this.inputButton = this.inputButton.bind(this);
+		this.cleanhistoryButton = this.cleanhistoryButton.bind(this);
 		this.updataUIText = this.updataUIText.bind(this);
+	}
+	processButton(){
+		var that = this;
+		this.ccc.TaskSubmit(this.state.inputFrame,(v)=>{
+			that.setState({
+				outputFrame: v
+			});
+		});
+		this.setState({
+			InputHistory: this.state.InputHistory.concat([this.state.inputFrame])
+		});
+		this.setState({
+			outputFrame: this.state.UILanguage["calculating..."]
+		});
+	}
+	inputButton(inputdata){
+		console.log(inputdata.element)
+		if(this.state.outputFrame !== ""){
+			this.setState({
+				inputFrame: inputdata.element,
+				outputFrame: ""
+			});
+		}else{
+			this.setState({
+				inputFrame: this.state.inputFrame+inputdata.element
+			});
+		}
+	}
+	cleanhistoryButton(){
+		console.log("click cleanhistoryButton")
+		this.InputHistory = []
+		this.setState({
+			inputFrame: "",
+			outputFrame: "",
+			InputHistory: []
+		});
 	}
 	updataUIText(inputdata){
 		this.setState({
@@ -82,7 +126,6 @@ class App extends React.Component {
 		var inputtextarea = document.querySelector('textarea#inputtextarea');
 		var outputtextarea = document.querySelector('textarea#outputtextarea');
 		var processButton = document.querySelector('button#processButton');
-		var cleanhistoryButton = document.querySelector('button#cleanhistoryButton');
 
 		processButton.onclick = function () {
 			that.ccc.TaskSubmit(inputtextarea.value,(v)=>{
@@ -95,13 +138,6 @@ class App extends React.Component {
 			});
 			that.setState({
 				outputFrame: that.state.UILanguage["calculating..."]
-			});
-		};
-		cleanhistoryButton.onclick = function () {
-			console.log("click cleanhistoryButton")
-			that.InputHistory = []
-			that.setState({
-				InputHistory: []
 			});
 		};
 
@@ -137,11 +173,22 @@ class App extends React.Component {
 	}
 	
 	render () {
+		var that = this;
 		const listItems = this.state.notice.map((element, index) =>
 			<ListGroupItem key={index}>{index+1}:{element}</ListGroupItem>
 		);
 		const InputHistorylistItems = this.state.InputHistory.map((element, index) =>
 			<ListGroupItem key={index}>{index+1}:{element}</ListGroupItem>
+		);
+		const NumberKeylistItems = [".","0","1","2","3","4","5","6","7","8","9"].reverse().map((element, index) =>
+			<div key={index} className={that.state.KeyBoardStyle}>
+				<Button onClick={()=>{that.inputButton({element})}}><b>{element}</b></Button>
+			</div>
+		);
+		const SymbolKeylistItems = ["*","/","+","-","&","|","&&","||","^","(",")","!"].map((element, index) =>
+			<div key={index} className={that.state.KeyBoardSymbolStyle}>
+				<Button onClick={()=>{that.inputButton({element})}}><b>{element}</b></Button>
+			</div>
 		);
 		return (
 			<div>
@@ -169,7 +216,11 @@ class App extends React.Component {
 							<div className="row">
 								<div className="col-md-6">
 									<FormGroup controlId="inputtextarea">
-									<FormControl componentClass="textarea" id="inputtextarea" placeholder={this.state.UILanguage["please input code here"]} />
+									<FormControl
+										componentClass="textarea"
+										id="inputtextarea"
+										placeholder={this.state.UILanguage["please input code here"]}
+										value={this.state.inputFrame}/>
 									</FormGroup>
 								</div>
 								<div className="col-md-6">
@@ -185,10 +236,24 @@ class App extends React.Component {
 								<div className="col-md-12">
 									<div className="panel panel-default">
 									<div className="panel-body">
-										<ButtonGroup>
-										<Button id="processButton">{this.state.UILanguage["begin process"]}</Button>
-										<Button id="cleanhistoryButton">{this.state.UILanguage["clean input history"]}</Button>
-										</ButtonGroup>
+										<div className="row">
+											<div className={this.state.KeyBoardlayoutStyleLeft}>
+												<div className="row">
+												{NumberKeylistItems}
+												</div>
+												<div className="row">
+												{SymbolKeylistItems}
+												</div>
+											</div>
+											<div className={this.state.KeyBoardlayoutStyleRight}>
+												<Button id="processButton" onClick={this.processButton}>
+													{this.state.UILanguage["run"]}
+												</Button>
+												<Button id="cleanhistoryButton" onClick={this.cleanhistoryButton}>
+													{this.state.UILanguage["Clear"]}
+												</Button>
+											</div>
+										</div>
 									</div>
 									</div>
 								</div>
@@ -216,7 +281,6 @@ class App extends React.Component {
 								</Panel.Body>
 								</Panel>
 							</div>
-							<video id="videoFrame" className="col-md-12"></video>
 							<div id="forcechart" className="col-md-12"></div>
 							<div id="bundlechart" className="col-md-12"></div>
 							</div>

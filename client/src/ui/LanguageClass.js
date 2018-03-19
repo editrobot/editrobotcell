@@ -26,10 +26,10 @@ class LanguageClass {
 				"cn":"这里将会输出处理结果"
 			},
 			{
-				"name":"begin process",
-				"en":"begin process",
-				"jp":"プロセスを開始する",
-				"cn":"开始处理"
+				"name":"run",
+				"en":"run",
+				"jp":"ランニング",
+				"cn":"执行"
 			},
 			{
 				"name":"calculating...",
@@ -38,10 +38,10 @@ class LanguageClass {
 				"cn":"正在计算"
 			},
 			{
-				"name":"clean input history",
-				"en":"clean input history",
-				"jp":"クリーンな入力履歴",
-				"cn":"清空历史记录"
+				"name":"Clear",
+				"en":"Clear",
+				"jp":"クリア",
+				"cn":"清空"
 			},
 			{
 				"name":"Message panel",

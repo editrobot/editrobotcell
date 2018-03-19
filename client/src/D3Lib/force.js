@@ -32,6 +32,8 @@ class force extends D3chart {
 			--Totals;
 			nodes.push({ name: ""+Totals });
 			edges.push({ source : 1  , target: (nodes.length-1) });
+			edges.push({ source : 2  , target: (nodes.length-1) });
+			edges.push({ source : 3  , target: (nodes.length-1) });
 		}
 		this.chart(nodes,edges)
 	}
@@ -60,7 +62,7 @@ class force extends D3chart {
 							.enter()
 							.append("line")
 							.style("stroke","#ccc")
-							.style("stroke-width",6);
+							.style("stroke-width",3);
 		
 		var color = d3.scale.category20();
 				
