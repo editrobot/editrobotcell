@@ -17,8 +17,8 @@ function getProcessInfo(){
 		memUsage,cpuUsage,cfg,env,pwd,execPath,pf,release,pid,arch,uptime
 	}
 }
+var portcount = process.argv.slice(2)[0] || 3001;
 
-var portcount = 3001;
 var processList = [
 	{port:8888,file:"proxy/proxy.js",workerHandle:null,model:"pipe"}
 ];

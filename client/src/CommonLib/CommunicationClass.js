@@ -53,7 +53,7 @@ class CommunicationClass extends BaseClass{
 		}
 		this.MyID = -1;
 		this.msg = [];
-		this.TaskRequestfrequency = 1000;
+		this.TaskRequestfrequency = 10000;
 		this.TaskCount = 0;
 		this.TaskList = [];
 		this.TaskResult = [];

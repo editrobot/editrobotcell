@@ -95,7 +95,7 @@ class bundle extends D3chart {
 			  .append("path")
 			  .attr("class", "link")
 			  .attr("d", line);	//使用线段生成器
-		
+
 		var node = gBundle.selectAll(".node")
 			  .data( nodes.filter(function(d) { return !d.children; }) )
 			  .enter()
@@ -104,11 +104,11 @@ class bundle extends D3chart {
 			  .attr("transform", function(d) {
 					return "rotate(" + (d.x- 90) + ")translate(" + d.y + ")" + "rotate("+ (90 - d.x) +")"; 
 			  });
-			
+
 		node.append("circle")
 			  .attr("r", 8)
 			  .style("fill",function(d,i){ return color(i); });
-			
+
 		node.append("text")
 			.attr("dy",".2em")
 			.style("text-anchor", "middle")

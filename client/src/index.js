@@ -8,6 +8,7 @@ import { Panel,
 	Navbar,Nav,NavItem,NavDropdown,
 	FormGroup,FormControl } from 'react-bootstrap';
 import './index.css';
+import $ from "jquery";
 
 import CommunicationClass from './CommonLib/CommunicationClass.js';
 import WebRTCClass from './CommonLib/WebRTCClass.js';
@@ -51,6 +52,9 @@ class App extends React.Component {
 		this.updataUIText = this.updataUIText.bind(this);
 	}
 	processButton(){
+		if(this.state.inputFrame === ""){
+			return ;
+		}
 		var that = this;
 		this.ccc.TaskSubmit(this.state.inputFrame,(v)=>{
 			that.setState({
@@ -123,23 +127,6 @@ class App extends React.Component {
 		var dd = new force("#forcechart")
 		var ddd = new bundle("#bundlechart")
 		var that = this;
-		var inputtextarea = document.querySelector('textarea#inputtextarea');
-		var outputtextarea = document.querySelector('textarea#outputtextarea');
-		var processButton = document.querySelector('button#processButton');
-
-		processButton.onclick = function () {
-			that.ccc.TaskSubmit(inputtextarea.value,(v)=>{
-				that.setState({
-					outputFrame: v
-				});
-			});
-			that.setState({
-				InputHistory: that.state.InputHistory.concat([inputtextarea.value])
-			});
-			that.setState({
-				outputFrame: that.state.UILanguage["calculating..."]
-			});
-		};
 
 		this.ccc.setMsgevent = (msg)=>{
 			that.setState({
@@ -166,28 +153,42 @@ class App extends React.Component {
 			}
 		}
 		this.ccc.initclient();
+		window.onresize=function(){ that.changeFrameSize();}
 	}
 
 	componentWillUnmount() {
 		console.log("componentWillUnmount")
 	}
+
+	changeFrameSize() {
+		console.log("changeFrameSize")
+		var that = this;
+		$("#AFRAME").width($("#3dframe").width())
+		$("#AFRAME").height($("#3dframe").width()/1.7777777777777777)
+	}
 	
 	render () {
 		var that = this;
 		const listItems = this.state.notice.map((element, index) =>
-			<ListGroupItem key={index}>{index+1}:{element}</ListGroupItem>
+			<ListGroupItem key={index}>
+				{index+1}:{element}
+			</ListGroupItem>
 		);
 		const InputHistorylistItems = this.state.InputHistory.map((element, index) =>
-			<ListGroupItem key={index}>{index+1}:{element}</ListGroupItem>
+			<ListGroupItem key={index} onClick={()=>{
+				that.setState({
+					inputFrame: element
+				});
+			}}>{index+1}:{element}</ListGroupItem>
 		);
-		const NumberKeylistItems = [".","0","1","2","3","4","5","6","7","8","9"].reverse().map((element, index) =>
+		const NumberKeylistItems = [".","00","0","1","2","3","4","5","6","7","8","9"].reverse().map((element, index) =>
 			<div key={index} className={that.state.KeyBoardStyle}>
-				<Button onClick={()=>{that.inputButton({element})}}><b>{element}</b></Button>
+				<Button bsStyle="primary" className="buttonstyle" onClick={()=>{that.inputButton({element})}}><b>{element}</b></Button>
 			</div>
 		);
 		const SymbolKeylistItems = ["*","/","+","-","&","|","&&","||","^","(",")","!"].map((element, index) =>
 			<div key={index} className={that.state.KeyBoardSymbolStyle}>
-				<Button onClick={()=>{that.inputButton({element})}}><b>{element}</b></Button>
+				<Button bsStyle="info" className="buttonstyle" onClick={()=>{that.inputButton({element})}}><b>{element}</b></Button>
 			</div>
 		);
 		return (
@@ -246,12 +247,18 @@ class App extends React.Component {
 												</div>
 											</div>
 											<div className={this.state.KeyBoardlayoutStyleRight}>
-												<Button id="processButton" onClick={this.processButton}>
-													{this.state.UILanguage["run"]}
-												</Button>
-												<Button id="cleanhistoryButton" onClick={this.cleanhistoryButton}>
-													{this.state.UILanguage["Clear"]}
-												</Button>
+												<div className="row">
+													<div className="col-md-12">
+														<Button bsStyle="success" className="buttonstyle" id="processButton" onClick={this.processButton}>
+															{this.state.UILanguage["run"]}
+														</Button>
+													</div>
+													<div className="col-md-12">
+														<Button className="buttonstyle" id="cleanhistoryButton" onClick={this.cleanhistoryButton}>
+															{this.state.UILanguage["Clear"]}
+														</Button>
+													</div>
+												</div>
 											</div>
 										</div>
 									</div>
@@ -271,6 +278,13 @@ class App extends React.Component {
 						</div>
 						<div className="col-md-5">
 							<div className="row">
+							<div className="col-md-12" id="3dframe">
+								<iframe src="/a.html"
+									id="AFRAME"
+									scrolling="no"
+									onLoad={this.changeFrameSize}
+									></iframe>
+							</div>
 							<div className="col-md-12">
 								<Panel>
 								<Panel.Heading>{this.state.UILanguage["YOUR GEOLOCATION"]}</Panel.Heading>
