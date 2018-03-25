@@ -1,27 +1,17 @@
 import BaseClass from './BaseClass.js';
 import ParserClass from './ParserClass.js';
-// import StorageClass from './StorageClass.js';
 
-// db.addData({
-	// "id" : that.MyID,
-	// "TaskID" : TaskID,
-	// "head":head,
-	// "method":method,
-	// "body":msg
-// });
-// db.readData(2);
-// db.resetData(2,"更新");
-// db.deleteData(2);
-// db.mapData();
-
-class CommunicationClass extends BaseClass{
+class CommunicationPortClass extends BaseClass{
 	constructor() {
 		super();
 		this.assembly = new ParserClass();
+	}
+}
 
-		// this.db = new StorageClass("TaskList");
-		// this.db.removeDB();
-		this.CommunicationMode = "websocket"
+class CommunicationClass extends CommunicationPortClass{
+	constructor() {
+		super();
+
 		this.port = this.GetQueryString("wsp");
 		this.Worker = {
 			"MakestructureTree" : (Task) =>{
@@ -63,7 +53,7 @@ class CommunicationClass extends BaseClass{
 				return Task;
 			},
 			"test2" : (Task) =>{
-				return this.TaskResult(Task.FromId,
+				return this.TaskResultTemplate(Task.FromId,
 					Task.TaskID,
 					Task.body+"c123");
 			}
@@ -148,7 +138,7 @@ class CommunicationClass extends BaseClass{
 		}
 		this.putTaskOnLocal(ttt)
 	}
-	
+
 	putTaskOnLocal(ttt){
 		var i;
 		var lock = true;
@@ -156,6 +146,7 @@ class CommunicationClass extends BaseClass{
 			if(1 === this.TaskSubmitList[i].state){
 				this.TaskSubmitList[i] = ttt;
 				lock = false;
+				break;
 			}
 		}
 		if(lock){
@@ -167,7 +158,7 @@ class CommunicationClass extends BaseClass{
 		return Date.parse(new Date())+""+this.MyID+this.TaskCount++;
 	}
 
-	TaskResult(ClientID,TaskID,body){
+	TaskResultTemplate(ClientID,TaskID,body){
 		return {
 			"FromId" : ClientID,
 			"TaskID" : TaskID,
@@ -264,8 +255,8 @@ class CommunicationClass extends BaseClass{
 					}
 				}
 				if(typeof completeresult !== "undefined"){
-					var temp = this.TaskResult(
-							this.TaskSubmitList[i].FromId,
+					var temp = this.TaskResultTemplate(
+							this.TaskSubmitList[i].prevId,
 							this.TaskSubmitList[i].prevTaskID,
 							completeresult
 							)
