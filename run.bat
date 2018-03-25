@@ -1,2 +1,2 @@
 @echo off
-node daemon.js
+node --inspect daemon.js

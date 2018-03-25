@@ -40,7 +40,15 @@ class MathBaseClass extends BaseClass{
 							isNaNMode = true;
 						}
 					}
-					temp = temp+sarray[i];
+					if((sarray[i] === "(")||(sarray[i] === ")")){
+						if(temp !== ""){
+							result.push(temp);
+							temp = "";
+						}
+						result.push(sarray[i]);
+					}else{
+						temp = temp+sarray[i];
+					}
 				break;
 				case false:
 					if(isNaNMode){
@@ -182,7 +190,7 @@ class MathBaseClass extends BaseClass{
 					break;
 					case "!":
 						var tempnum = structureTree[point][structureTree[point].length-1].body
-						while(tempnum !== 1){
+						while(!(tempnum <= 1)){
 							--tempnum;
 							structureTree[point].push({"format":"Symbol","body":"*"})
 							structureTree[point].push({"format":"num","body":tempnum})

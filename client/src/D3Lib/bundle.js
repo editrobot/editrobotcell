@@ -54,13 +54,10 @@ class bundle extends D3chart {
 		var bundle = d3.layout.bundle();				
 
 		var nodes = cluster.nodes(childnode);
-		console.log(nodes);
 		
 		var oLinks = map(nodes, childnodeline);
-		console.log(oLinks);
 		
 		var links = bundle(oLinks);
-		console.log(links);
 		
 		//将links中的source和target由名称替换成节点
 		function map( nodes, links ){

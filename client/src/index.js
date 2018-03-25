@@ -33,7 +33,7 @@ class App extends React.Component {
 			"longitude":0,
 			"latitude":0,
 			"notice":[],
-			"inputFrame":"",
+			"inputFrame":"9^2",
 			"outputFrame":"",
 			"KeyBoardlayoutStyleLeft":"col-xs-9 col-sm-9 col-md-9 col-lg-9 KeyFrame",
 			"KeyBoardlayoutStyleRight":"col-xs-3 col-sm-3 col-md-3 col-lg-3 KeyFrame",
@@ -42,7 +42,6 @@ class App extends React.Component {
 			"InputHistory":[],
 			"UILanguage" : this.lug.outPutUIText("cn")
 		};
-
 
 		// this.rtc.VideoInit("videoFrame");
 		this.getGpsInfo()
@@ -56,9 +55,9 @@ class App extends React.Component {
 			return ;
 		}
 		var that = this;
-		this.ccc.TaskSubmit(this.state.inputFrame,(v)=>{
+		this.ccc.TaskSubmit(null,null,"MakestructureTree",this.state.inputFrame,(v)=>{
 			that.setState({
-				outputFrame: v
+				outputFrame: v[0]
 			});
 		});
 		this.setState({
@@ -88,6 +87,10 @@ class App extends React.Component {
 			inputFrame: "",
 			outputFrame: "",
 			InputHistory: []
+		});
+		this.ccc.TaskSubmit(null,null,"test1","a",(v)=>{
+			console.log("begin TaskSubmit cb");
+			console.log(v);
 		});
 	}
 	updataUIText(inputdata){
@@ -221,6 +224,7 @@ class App extends React.Component {
 										componentClass="textarea"
 										id="inputtextarea"
 										placeholder={this.state.UILanguage["please input code here"]}
+										onChange={()=>{}}
 										value={this.state.inputFrame}/>
 									</FormGroup>
 								</div>

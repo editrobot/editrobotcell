@@ -49,15 +49,32 @@ class CommunicationClass extends BaseClass{
 				this.setMsg("run Result");
 				this.setMsg(temp);
 				return Task;
+			},
+			"test1" : (Task) =>{
+				Task.head = "TaskSubmit";
+				Task.method = "test2";
+				Task.DataCacheMax = 1;
+				Task.body = Task.body+"b";
+				Task.cb = (v)=>{
+					console.log("test1 cb")
+					console.log(v)
+					return v;
+				};
+				return Task;
+			},
+			"test2" : (Task) =>{
+				return this.TaskResult(Task.FromId,
+					Task.TaskID,
+					Task.body+"c123");
 			}
 		}
 		this.MyID = -1;
 		this.msg = [];
-		this.TaskRequestfrequency = 10000;
+		this.ClientsTotals = 0;
 		this.TaskCount = 0;
-		this.TaskList = [];
-		this.TaskResult = [];
-		this.TaskComplete = [];
+		this.TaskSubmitList = [];
+		this.TaskResultSubmitList = [];
+		this.TaskCompleteList = [];
 		this.setMsgevent = ()=>{};
 		this.getMsgevent = ()=>{};
 	}
@@ -90,64 +107,73 @@ class CommunicationClass extends BaseClass{
 		this.onclose();
 	}
 
-	sendTask(head,TaskID,step,method,msg){
+	onclose(){
+		var that = this;
+		this.ws.onclose = function (message) {
+			that.trace("close")
+			that.initclient()
+			that.setMsg("this client has close!")
+		}
+	}
+
+	sendTask(TaskID,method,msg){
 		var that = this;
 		this.ws.send(JSON.stringify({
 			"FromId" : that.MyID,
 			"TaskID" : TaskID,
-			"head":head,
+			"head":"TaskSubmit",
 			"method":method,
-			"step":step,
-			"packageId":1,
-			"packageTotal":1,
 			"body":msg
 		}));
-		console.dir(this.TaskList);
+		console.dir(this.TaskSubmitList);
 	}
 
-	TaskSubmit(body,cb){
+	TaskSubmit(prevId,prevTaskID,method,body,cb,DataCacheMax){
 		var that = this;
 		if(this.MyID === -1){return;}
-		var TaskID = Date.parse(new Date())+""+that.MyID+that.TaskCount++;
-		this.sendTask("TaskSubmit",TaskID,0,"MakestructureTree",body)
+		var TaskID = this.getTaskID();
+		this.sendTask(TaskID,method,body)
+		var ttt = {
+			"prevId" : prevId,
+			"prevTaskID" : prevTaskID,
+			"FromId" : that.MyID,
+			"TaskID" : TaskID,
+			"head" : "TaskSubmit",
+			"method" : method,
+			"body" : body,
+			"DataCacheMax" : DataCacheMax || 1,
+			"DataCache" : [],
+			"Complete" : cb,
+			"state":0
+		}
+		this.putTaskOnLocal(ttt)
+	}
+	
+	putTaskOnLocal(ttt){
 		var i;
 		var lock = true;
-		for(i in this.TaskList){
-			if(1 === this.TaskList[i].state){
-				this.TaskList[i] = {
-					"TaskQueue" : [{
-						"FromId" : that.MyID,
-						"TaskID" : TaskID,
-						"head" : "TaskSubmit",
-						"method" : "MakestructureTree",
-						"step" : 0,
-						"packageId" : 1,
-						"packageTotal" : 1,
-						"body" : body
-					}],
-					"TaskID" : TaskID,
-					"Complete" : cb,
-					"state":0
-				}
+		for(i in this.TaskSubmitList){
+			if(1 === this.TaskSubmitList[i].state){
+				this.TaskSubmitList[i] = ttt;
 				lock = false;
 			}
 		}
 		if(lock){
-			this.TaskList.push({
-				"TaskQueue" : [{
-					"FromId" : that.MyID,
-					"TaskID" : TaskID,
-					"head" : "TaskSubmit",
-					"method" : "MakestructureTree",
-					"step" : 0,
-					"packageId" : 1,
-					"packageTotal" : 1,
-					"body" : body
-				}],
-				"TaskID" : TaskID,
-				"Complete" : cb,
-				"state":0
-			});
+			this.TaskSubmitList.push(ttt);
+		}
+	}
+	
+	getTaskID(){
+		return Date.parse(new Date())+""+this.MyID+this.TaskCount++;
+	}
+
+	TaskResult(ClientID,TaskID,body){
+		return {
+			"FromId" : ClientID,
+			"TaskID" : TaskID,
+			"head" : "TaskComplete",
+			"method" : "complete",
+			"body" : body
 		}
 	}
 
@@ -157,45 +183,45 @@ class CommunicationClass extends BaseClass{
 			"FromId" : that.MyID,
 			"head":"TaskRequest",
 		}));
-		setTimeout(()=>{that.TaskRequest()},this.TaskRequestfrequency);
 	}
 
 	TaskResultSubmit(TaskResult){
-		this.TaskResult.push(TaskResult);
+		this.TaskResultSubmitList = this.TaskResultSubmitList.concat(TaskResult)
 	}
 
 	TaskResultPop(){
-		if(this.TaskResult.length !== 0){
-			var temp = this.TaskResult.shift()
-			console.log("TaskResultPop");
-			console.log(temp);
-			this.ws.send(JSON.stringify(temp));
+		var that = this;
+		while(this.TaskResultSubmitList.length !== 0){
+			var temp = this.TaskResultSubmitList.shift()
+			// console.log("TaskResultPop");
+			// console.log(temp);
+			if(temp.head === "TaskSubmit"){
+				this.TaskSubmit(temp.FromId,temp.TaskID,
+					temp.method,
+					temp.body,
+					temp.cb,
+					temp.DataCacheMax
+				)
+			}else if(temp.head === "TaskComplete"){
+				this.ws.send(JSON.stringify(temp));
+			}
 		}
+		that.TaskRequest()
 	}
-	
+
 	TaskCompletePop(){
 		var i;
-		if(this.TaskComplete.length !== 0){
-			var temp = this.TaskComplete.shift()
-			console.log("TaskCompletePop");
-			for(i in this.TaskList){
-				if(temp.TaskID === this.TaskList[i].TaskID){
-					this.TaskList[i].Complete(temp.body);
-					this.TaskList[i].state = 1;
-					break;
+		if(this.TaskCompleteList.length !== 0){
+			var temp = this.TaskCompleteList.shift()
+			for(i in this.TaskSubmitList){
+				if(temp.TaskID === this.TaskSubmitList[i].TaskID){
+					this.TaskSubmitList[i].DataCache.push(temp.body)
+					return i;
 				}
 			}
 			
 		}
-	}
-
-	onclose(){
-		var that = this;
-		this.ws.onclose = function (message) {
-			that.trace("close")
-			that.initclient()
-			that.setMsg("this client has close!")
-		}
+		return -1;
 	}
 
 	messageProcess(msg){
@@ -206,9 +232,8 @@ class CommunicationClass extends BaseClass{
 				that.MyID = msg.body;
 			break;
 			case "broadcast":
-				console.log(msg.body.ClientsTotals)
-				that.TaskRequestfrequency = 100+msg.body.ClientsTotals
-				console.log("TaskRequestfrequency:",that.TaskRequestfrequency)
+				// console.log(msg.body.ClientsTotals)
+				this.ClientsTotals = msg.body.ClientsTotals;
 				that.trace('[SERVER] broadcast from server:'+msg.body.msg);
 				that.setMsg('[SERVER] broadcast from server:'+msg.body.msg);
 			break;
@@ -219,20 +244,36 @@ class CommunicationClass extends BaseClass{
 				var TaskResult = this.Worker[msg.method](msg)
 				console.log("get Taskpackage:")
 				console.log(TaskResult)
-				++TaskResult.step;
 				this.TaskResultSubmit(TaskResult)
-				setTimeout(()=>{
-					that.TaskResultPop();
-				},0);
+				that.TaskResultPop();
+			break;
+			case "TaskEmpty":
+				// that.TaskRequest()
 			break;
 			case "TaskComplete":
 				that.setMsg('[SERVER] TaskComplete :'+msg.TaskID);
 				console.log("TaskComplete:")
 				console.log(msg)
-				this.TaskComplete.push(msg)
-				setTimeout(()=>{
-					that.TaskCompletePop();
-				},0);
+				this.TaskCompleteList.push(msg)
+				var i = that.TaskCompletePop();
+				if(i !== -1){
+					var CompleteResult;
+					if(this.TaskSubmitList[i].DataCacheMax === this.TaskSubmitList[i].DataCache.length){
+						var completeresult = this.TaskSubmitList[i].Complete(this.TaskSubmitList[i].DataCache);
+						this.TaskSubmitList[i].state = 1;
+					}
+				}
+				if(typeof completeresult !== "undefined"){
+					var temp = this.TaskResult(
+							this.TaskSubmitList[i].FromId,
+							this.TaskSubmitList[i].prevTaskID,
+							completeresult
+							)
+					console.log("completeresult:",temp)
+					
+					this.TaskResultSubmit(temp)
+					that.TaskResultPop();
+				}
 			break;
 			default:
 				that.trace('[SERVER] receive unknow message:'+msg.body);

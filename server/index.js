@@ -20,6 +20,7 @@ class ss extends base {
 	constructor() {
 		super();
 		this.ClientsTotals = 0;
+		this.Waiting = [];
 		this.CLIENTS = [];
 		this.TaskList = [];
 		this.DefineEnvironment();
@@ -80,6 +81,26 @@ class ss extends base {
 			"head":"ClientsTotals",
 			"body": this.ClientsTotals
 		});
+	}
+	getWSIndex(ws){
+		var that = this;
+		var i;
+		for(i in that.CLIENTS){
+			if(ws === that.CLIENTS[i].handle){
+				return i
+			}
+		}
+	}
+	getWaitingWS(){
+		var freews;
+		while(this.Waiting.length !== 0){
+			freews = this.Waiting.shift();
+			if((typeof this.CLIENTS[freews] !== "undefined")&&
+				(this.CLIENTS[freews].active)){
+				return freews;
+			}
+		}
+		return -1;
 	}
 	creatWebSocket (){
 		var that = this;
@@ -153,15 +174,45 @@ class ss extends base {
 		var that = this;
 		switch(msg.head){
 			case "TaskSubmit":
-				that.TaskList.unshift(msg)
-			break;
-			case "TaskSubmit":
-				that.TaskList.unshift(msg)
+				console.log(msg.head)
+				var freews = that.getWaitingWS();
+				console.log("freews:",freews)
+				console.log("that.Waiting:")
+				console.log(that.Waiting)
+				if(freews !== -1){
+					msg["head"] = "Taskpackage";
+					this.CLIENTS[freews].handle.send(
+						JSON.stringify(msg),
+						(err) => {
+							if (err) {
+								console.log('[SERVER] error:',err);
+							}
+					});
+				}else{
+					that.TaskList.unshift(msg)
+				}
+				console.log("that.Waiting:")
+				console.log(that.Waiting)
 			break;
 			case "TaskRequest":
+				console.log(msg.head)
+				console.log("that.Waiting:")
+				console.log(that.Waiting)
 				var temp = that.TaskList.pop()
 				if(typeof temp === "undefined"){
-					break;
+					var index = that.getWSIndex(ws)
+					if(that.Waiting.indexOf(index) === -1){
+						that.Waiting.push(index)
+					}
+					ws.send(
+						JSON.stringify({
+							"head" : "TaskEmpty"
+						}),
+						(err) => {
+							if (err) {
+								console.log('[SERVER] error:',err);
+							}
+					});
 				}else{
 					temp["head"] = "Taskpackage";
 					ws.send(
@@ -172,6 +223,8 @@ class ss extends base {
 							}
 					});
 				}
+				console.log("that.Waiting:")
+				console.log(that.Waiting)
 			break;
 			case "TaskComplete":
 				var i;
