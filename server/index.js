@@ -38,6 +38,8 @@ class ss extends base {
 	DefineEnvironment (){
 		this.i = require('./Router/i');
 		this.vis = require('./Router/vis');
+		// console.log(process.argv)
+		// console.log(process.argv.slice(2))
 		this.serverport = process.argv.slice(2)[0];
 
 		app.use('/', express.static('./client/build'));
@@ -73,14 +75,13 @@ class ss extends base {
 					console.log('[SERVER] error:',err);
 				}
 		});
-		process.send({
-			"head":"BroadcastAddID",
-			"body": i
-		});
-		process.send({
-			"head":"ClientsTotals",
-			"body": this.ClientsTotals
-		});
+		that.wss.broadcast(JSON.stringify({
+			"head":"broadcast",
+			"body":{
+				"ClientsTotals":that.ClientsTotals,
+				"msg":"client ID "+i+" join"
+			}
+		}));
 	}
 	getWSIndex(ws){
 		var that = this;
@@ -122,14 +123,13 @@ class ss extends base {
 						console.log('clientID ',i,' is close');
 						that.CLIENTS[i].active = false;
 						that.CLIENTS[i].handle = null;
-						process.send({
-							"head":"BroadcastCloseID",
-							"body": i
-						});
-						process.send({
-							"head":"ClientsTotals",
-							"body": --that.ClientsTotals
-						});
+						that.wss.broadcast(JSON.stringify({
+							"head":"broadcast",
+							"body":{
+								"ClientsTotals":--that.ClientsTotals,
+								"msg":"client ID "+i+" close"
+							}
+						}));
 						break;
 					}
 				}
@@ -146,29 +146,6 @@ class ss extends base {
 				}
 			});
 		};
-		process.on('message', (m) => {
-			switch(m.head){
-				case "BroadcastAddID":
-					that.wss.broadcast(JSON.stringify({
-						"head":"broadcast",
-						"body":{
-							"ClientsTotals":that.ClientsTotals,
-							"msg":"client ID "+m.body+" join"
-						}
-					}));
-				break;
-				case "BroadcastCloseID":
-					that.wss.broadcast(JSON.stringify({
-						"head":"broadcast",
-						"body":{
-							"ClientsTotals":that.ClientsTotals,
-							"msg":"client ID "+m.body+" close"
-						}
-					}));
-				break;
-				default:
-			}
-		});
 	}
 	messageProcess(msg,ws){
 		var that = this;

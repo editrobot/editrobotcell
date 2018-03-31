@@ -18,27 +18,55 @@ function getProcessInfo(){
 	}
 }
 var portcount = process.argv.slice(2)[0] || 3001;
+var devportcount = process.argv.slice(2)[1] || 9230;
 
 var processList = [
-	{port:8888,file:"proxy/proxy.js",workerHandle:null,model:"pipe"}
+	{
+		port:portcount,
+		devport:devportcount,
+		file:"proxy/proxy.js",
+		workerHandle:null,
+		model:"pipe"
+	}
 ];
+portcount++;
+devportcount++;
 while(os.cpus().length !== processList.length){
 	processList.push({
 		port:portcount,
+		devport:devportcount,
 		file:"server/index.js",
 		workerHandle:null,
 		model:"cellmaster",
 		clients:0
 	});
 	portcount++;
+	devportcount++;
 }
 console.log("this machine has ",os.cpus().length," processor")
 
 function spawn(point) {
-	processList[point].workerHandle = child_process.fork(
-		processList[point].file,
-		[processList[point].port]
+	processList[point].workerHandle = child_process.spawn(
+		'node',
+		[
+			"--inspect="+processList[point].devport,
+			processList[point].file,
+			processList[point].port
+		]
 	)
+	console.log(processList[point].file,
+		"on port",
+		processList[point].port,
+		"dev port ",
+		processList[point].devport)
+
+	processList[point].workerHandle.stdout.on('data', (data) => {
+		console.log(new Buffer(data).toString('utf-8'));
+	});
+
+	processList[point].workerHandle.stderr.on('data', (data) => {
+		console.log(new Buffer(data).toString('utf-8'));
+	});
 
 	processList[point].workerHandle.on('exit', function (code) {
 		if (code !== 0) {
@@ -46,44 +74,7 @@ function spawn(point) {
 		}
 	});
 }
-function BroadcastToChild(data){
-	processList.map((i)=>{
-		switch(i.model){
-			case "cellmaster":
-				i.workerHandle.send({
-					pid: i.workerHandle.pid,
-					port: i.port,
-					head: data.head,
-					body: data.body
-				});
-			break;
-			default:
-		}
-	})
-}
 
 for (point in processList){
 	spawn(point);
-	processList[point].workerHandle.on('message', (data) => {
-		// console.log('child ',processList[point].workerHandle.pid,' say：',data);
-		switch(data.head){
-			case "BroadcastAddID":
-				BroadcastToChild({
-					"head": "BroadcastAddID",
-					"body": data.body
-				});
-			break;
-			case "BroadcastCloseID":
-				BroadcastToChild({
-					"head": "BroadcastCloseID",
-					"body": data.body
-				});
-			break;
-			case "ClientsTotals":
-				processList[point].clients = data.body;
-				console.log("ClientsTotals ",processList[point].clients)
-			break;
-			default:
-		}
-	});
 }
