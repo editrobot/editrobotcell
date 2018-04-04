@@ -20,7 +20,20 @@ function getProcessInfo(){
 var portcount = process.argv.slice(2)[0] || 3001;
 var devportcount = process.argv.slice(2)[1] || 9230;
 
-var processList = [
+var processList = [];
+
+processList.push({
+	port:portcount,
+	devport:devportcount,
+	file:"server/index.js",
+	workerHandle:null,
+	model:"cellmaster",
+	clients:0
+});
+portcount++;
+devportcount++;
+
+processList.push(
 	{
 		port:portcount,
 		devport:devportcount,
@@ -28,21 +41,10 @@ var processList = [
 		workerHandle:null,
 		model:"pipe"
 	}
-];
+);
 portcount++;
 devportcount++;
-while(os.cpus().length !== processList.length){
-	processList.push({
-		port:portcount,
-		devport:devportcount,
-		file:"server/index.js",
-		workerHandle:null,
-		model:"cellmaster",
-		clients:0
-	});
-	portcount++;
-	devportcount++;
-}
+
 console.log("this machine has ",os.cpus().length," processor")
 
 function spawn(point) {

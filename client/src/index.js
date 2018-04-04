@@ -165,7 +165,6 @@ class App extends React.Component {
 
 	changeFrameSize() {
 		console.log("changeFrameSize")
-		var that = this;
 		$("#AFRAME").width($("#3dframe").width())
 		$("#AFRAME").height($("#3dframe").width()/1.7777777777777777)
 	}

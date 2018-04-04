@@ -41,16 +41,21 @@ class CommunicationClass extends CommunicationPortClass{
 				return Task;
 			},
 			"test1" : (Task) =>{
-				Task.head = "TaskSubmit";
-				Task.method = "test2";
-				Task.DataCacheMax = 1;
-				Task.body = Task.body+"b";
-				Task.cb = (v)=>{
+				var TaskList = [];
+				var tTask = {};
+				tTask.FromId = Task.FromId
+				tTask.TaskID = Task.TaskID
+				tTask.head = "TaskSubmit";
+				tTask.method = "test2";
+				tTask.DataCacheMax = 1;
+				tTask.body = Task.body+"b";
+				tTask.cb = (v)=>{
 					console.log("test1 cb")
 					console.log(v)
 					return v;
 				};
-				return Task;
+				TaskList.push(tTask)
+				return TaskList;
 			},
 			"test2" : (Task) =>{
 				return this.TaskResultTemplate(Task.FromId,
@@ -251,6 +256,8 @@ class CommunicationClass extends CommunicationPortClass{
 					var CompleteResult;
 					if(this.TaskSubmitList[i].DataCacheMax === this.TaskSubmitList[i].DataCache.length){
 						var completeresult = this.TaskSubmitList[i].Complete(this.TaskSubmitList[i].DataCache);
+						console.log(this.TaskSubmitList[i].DataCache)
+
 						this.TaskSubmitList[i].state = 1;
 					}
 				}
