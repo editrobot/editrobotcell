@@ -13,56 +13,7 @@ class CommunicationClass extends CommunicationPortClass{
 		super();
 
 		this.port = this.GetQueryString("wsp");
-		this.Worker = {
-			"MakestructureTree" : (Task) =>{
-				Task.head = "TaskSubmit";
-				Task.method = "Result";
-				var Parser = new ParserClass();
-				var temp = Parser.MakestructureTree(Task.body);
-				Task.body = temp;
-				
-				this.setMsg("run MakestructureTree");
-				this.setMsg(JSON.stringify(temp));
-				return Task;
-			},
-			"Result" : (Task) =>{
-				Task.head = "TaskComplete";
-				Task.method = "complete";
-				var Parser = new ParserClass();
-				Parser.process(Task.body);
-				var temp = "";
-				var i;
-				for(i in Parser.ResultStack){
-					temp = Parser.ResultStack[i].body + temp;
-				}
-				Task.body = temp;
-				this.setMsg("run Result");
-				this.setMsg(temp);
-				return Task;
-			},
-			"test1" : (Task) =>{
-				var TaskList = [];
-				var tTask = {};
-				tTask.FromId = Task.FromId
-				tTask.TaskID = Task.TaskID
-				tTask.head = "TaskSubmit";
-				tTask.method = "test2";
-				tTask.DataCacheMax = 1;
-				tTask.body = Task.body+"b";
-				tTask.cb = (v)=>{
-					console.log("test1 cb")
-					console.log(v)
-					return v;
-				};
-				TaskList.push(tTask)
-				return TaskList;
-			},
-			"test2" : (Task) =>{
-				return this.TaskResultTemplate(Task.FromId,
-					Task.TaskID,
-					Task.body+"c123");
-			}
-		}
+		this.Worker = {}
 		this.MyID = -1;
 		this.msg = [];
 		this.ClientsTotals = 0;
@@ -121,6 +72,10 @@ class CommunicationClass extends CommunicationPortClass{
 			"body":msg
 		}));
 		console.dir(this.TaskSubmitList);
+	}
+
+	setApi(api){
+		
 	}
 
 	TaskSubmit(prevId,prevTaskID,method,body,cb,DataCacheMax){
@@ -256,7 +211,6 @@ class CommunicationClass extends CommunicationPortClass{
 					var CompleteResult;
 					if(this.TaskSubmitList[i].DataCacheMax === this.TaskSubmitList[i].DataCache.length){
 						var completeresult = this.TaskSubmitList[i].Complete(this.TaskSubmitList[i].DataCache);
-						console.log(this.TaskSubmitList[i].DataCache)
 
 						this.TaskSubmitList[i].state = 1;
 					}

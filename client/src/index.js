@@ -10,7 +10,7 @@ import { Panel,
 import './index.css';
 import $ from "jquery";
 
-import CommunicationClass from './CommonLib/CommunicationClass.js';
+import ApiClass from './CommonLib/ApiClass.js';
 import WebRTCClass from './CommonLib/WebRTCClass.js';
 
 import bundle from './D3Lib/bundle.js';
@@ -22,7 +22,7 @@ import LanguageClass from './ui/LanguageClass.js';
 class App extends React.Component {
 	constructor(props) {
 		super(props);
-		this.ccc = new CommunicationClass();
+		this.api = new ApiClass();
 		this.rtc = new WebRTCClass();
 		this.lug = new LanguageClass();
 
@@ -55,11 +55,13 @@ class App extends React.Component {
 			return ;
 		}
 		var that = this;
-		this.ccc.TaskSubmit(null,null,"MakestructureTree",this.state.inputFrame,(v)=>{
+		this.api.TaskSubmit(null,null,"test1",this.state.inputFrame,(v)=>{
+			console.log("begin TaskSubmit cb");
+			console.log(v);
 			that.setState({
 				outputFrame: v[0]
 			});
-		});
+		},2);
 		this.setState({
 			InputHistory: this.state.InputHistory.concat([this.state.inputFrame])
 		});
@@ -91,7 +93,7 @@ class App extends React.Component {
 		this.ccc.TaskSubmit(null,null,"test1","a",(v)=>{
 			console.log("begin TaskSubmit cb");
 			console.log(v);
-		});
+		},2);
 	}
 	updataUIText(inputdata){
 		this.setState({
@@ -131,12 +133,12 @@ class App extends React.Component {
 		var ddd = new bundle("#bundlechart")
 		var that = this;
 
-		this.ccc.setMsgevent = (msg)=>{
+		this.api.setMsgevent = (msg)=>{
 			that.setState({
 				notice: msg
 			});
 		}
-		this.ccc.getMsgevent = (msg)=>{
+		this.api.getMsgevent = (msg)=>{
 			switch(msg.head){
 				case "clientID":
 					that.setState({
@@ -155,7 +157,7 @@ class App extends React.Component {
 				default:
 			}
 		}
-		this.ccc.initclient();
+		this.api.initclient();
 		window.onresize=function(){ that.changeFrameSize();}
 	}
 
