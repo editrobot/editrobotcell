@@ -7,17 +7,19 @@ class ApiClass extends CommunicationClass{
 			"test1" : (Task) =>{
 				var TaskList = [];
 				var tTask = {};
-				tTask.FromId = Task.FromId
-				tTask.TaskID = Task.TaskID
-				tTask.head = "TaskSubmit";
-				tTask.method = "test2";
-				tTask.DataCacheMax = 1;
-				tTask.body = Task.body+"b";
-				tTask.cb = (v)=>{
-					console.log("test1 cb")
-					console.log(v)
-					return v;
-				};
+				tTask = this.TaskSubmitTemplate(
+					Task.FromId,
+					Task.TaskID,
+					"test2",
+					Task.body+"b",
+					1,
+					(v)=>{
+						console.log("test1 cb")
+						console.log(v)
+						return v;
+					}
+				);
+
 				TaskList.push(tTask)
 				TaskList.push(tTask)
 				return TaskList;
@@ -29,8 +31,9 @@ class ApiClass extends CommunicationClass{
 			}
 		}
 	}
-	run(){
-		
+	setWorker(name,cb){
+		var that = this
+		this.Worker[name] = cb
 	}
 }
 export default ApiClass;

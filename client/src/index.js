@@ -11,6 +11,7 @@ import './index.css';
 import $ from "jquery";
 
 import ApiClass from './CommonLib/ApiClass.js';
+import ParserClass from './CommonLib/ParserClass.js';
 import WebRTCClass from './CommonLib/WebRTCClass.js';
 
 import bundle from './D3Lib/bundle.js';
@@ -23,6 +24,70 @@ class App extends React.Component {
 	constructor(props) {
 		super(props);
 		this.api = new ApiClass();
+		this.api.setWorker("Calculation",(Task) => {
+				var TaskList = [];
+				var tTask = {};
+				tTask = this.api.TaskSubmitTemplate(
+					Task.FromId,
+					Task.TaskID,
+					"MakestructureTree",
+					Task.body,
+					1,
+					(v)=>{
+						console.log("Calculation cb")
+						console.log(v)
+						return v;
+					}
+				);
+
+				TaskList.push(tTask)
+				return TaskList;
+			});
+		this.api.setWorker("MakestructureTree",(Task) => {
+				var TaskList = [];
+				var tTask = {};
+				var assembly = new ParserClass();
+				var structureTree = assembly.MakestructureTree(Task.body);
+				tTask = this.api.TaskSubmitTemplate(
+					Task.FromId,
+					Task.TaskID,
+					"disintegration",
+					structureTree,
+					1,
+					(v)=>{
+						console.log("MakestructureTree cb")
+						console.log(v)
+						return v;
+					}
+				);
+				TaskList.push(tTask)
+				return TaskList;
+			});
+		this.api.setWorker("disintegration",(Task) => {
+				Task.body.shift()
+				if(Task.body.length > 1){
+					var TaskList = [];
+					var tTask = this.api.TaskSubmitTemplate(
+						Task.FromId,
+						Task.TaskID,
+						"disintegration",
+						Task.body,
+						1,
+						(v)=>{
+							console.log("disintegration cb")
+							console.log(v)
+							return v;
+						}
+					);
+					TaskList.push(tTask)
+					return TaskList;
+				}else{
+					return this.api.TaskResultTemplate(Task.FromId,
+						Task.TaskID,
+						Task.body);
+				}
+			});
+
 		this.rtc = new WebRTCClass();
 		this.lug = new LanguageClass();
 
@@ -33,7 +98,7 @@ class App extends React.Component {
 			"longitude":0,
 			"latitude":0,
 			"notice":[],
-			"inputFrame":"9^2",
+			"inputFrame":"9^(2+1)*(2-(5-3))/6",
 			"outputFrame":"",
 			"KeyBoardlayoutStyleLeft":"col-xs-9 col-sm-9 col-md-9 col-lg-9 KeyFrame",
 			"KeyBoardlayoutStyleRight":"col-xs-3 col-sm-3 col-md-3 col-lg-3 KeyFrame",
@@ -55,13 +120,13 @@ class App extends React.Component {
 			return ;
 		}
 		var that = this;
-		this.api.TaskSubmit(null,null,"test1",this.state.inputFrame,(v)=>{
+		this.api.TaskSubmit(null,null,"Calculation",this.state.inputFrame,(v)=>{
 			console.log("begin TaskSubmit cb");
 			console.log(v);
-			that.setState({
-				outputFrame: v[0]
-			});
-		},2);
+			// that.setState({
+				// outputFrame: v[0]
+			// });
+		},1);
 		this.setState({
 			InputHistory: this.state.InputHistory.concat([this.state.inputFrame])
 		});
@@ -90,7 +155,7 @@ class App extends React.Component {
 			outputFrame: "",
 			InputHistory: []
 		});
-		this.ccc.TaskSubmit(null,null,"test1","a",(v)=>{
+		this.api.TaskSubmit(null,null,"test1","a",(v)=>{
 			console.log("begin TaskSubmit cb");
 			console.log(v);
 		},2);

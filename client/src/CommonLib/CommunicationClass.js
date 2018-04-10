@@ -1,10 +1,8 @@
 import BaseClass from './BaseClass.js';
-import ParserClass from './ParserClass.js';
 
 class CommunicationPortClass extends BaseClass{
 	constructor() {
 		super();
-		this.assembly = new ParserClass();
 	}
 }
 
@@ -116,6 +114,18 @@ class CommunicationClass extends CommunicationPortClass{
 	
 	getTaskID(){
 		return Date.parse(new Date())+""+this.MyID+this.TaskCount++;
+	}
+
+	TaskSubmitTemplate(ClientID,TaskID,method,body,DataCacheMax,cb){
+		return {
+			"FromId" : ClientID,
+			"TaskID" : TaskID,
+			"head" : "TaskSubmit",
+			"method" : method,
+			"DataCacheMax" : DataCacheMax,
+			"body" : body,
+			"cb" : cb
+		}
 	}
 
 	TaskResultTemplate(ClientID,TaskID,body){
